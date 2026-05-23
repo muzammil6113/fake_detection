@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+{% block title %}Login — BlockVerify{% endblock %}
+{% block content %}
+<div style="max-width:22rem;margin:0 auto">
+  <h1 style="font-size:1.6rem;font-weight:700;text-align:center;margin-bottom:1.5rem">Login</h1>
+  <div class="glass" style="border-radius:1rem;padding:2rem">
+    <form method="post">
+      {% csrf_token %}
+      {% for field in form %}
+      <div style="margin-bottom:1rem">
+        <label style="display:block;color:#94a3b8;font-size:.75rem;font-weight:500;margin-bottom:.35rem">
+          {{ field.label }}
+        </label>
+        <input type="{{ field.field.widget.input_type }}" name="{{ field.html_name }}"
+               class="inp" autofocus="{{ field.field.widget.attrs.autofocus|default:'' }}"/>
+        {% for error in field.errors %}
+          <p style="color:#f87171;font-size:.72rem;margin-top:.25rem">{{ error }}</p>
+        {% endfor %}
+      </div>
+      {% endfor %}
+      {% if form.non_field_errors %}
+        <p style="color:#f87171;font-size:.8rem;margin-bottom:.75rem">{{ form.non_field_errors.0 }}</p>
+      {% endif %}
+      <button type="submit" class="btn btn-blue" style="width:100%;padding:.65rem">Login</button>
+    </form>
+    <p style="text-align:center;color:#475569;font-size:.85rem;margin-top:1.25rem">
+      No account? <a href="/accounts/register/" style="color:#60a5fa">Register</a>
+    </p>
+    <div style="margin-top:1.25rem;padding:.75rem;background:rgba(13,20,40,.6);
+                border-radius:.5rem;font-size:.75rem;color:#475569">
+      <p style="margin-bottom:.35rem;font-weight:600;color:#64748b">Demo accounts (password: demo1234)</p>
+      <p>nike_mfr · dist_john · customer_ali</p>
+    </div>
+  </div>
+</div>
+{% endblock %}

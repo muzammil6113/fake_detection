@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+{% block title %}{{ title }} — BlockVerify{% endblock %}
+{% block content %}
+<div style="max-width:36rem;margin:0 auto">
+  <h1 style="font-size:1.5rem;font-weight:700;margin-bottom:1.5rem">{{ title }}</h1>
+  <div class="glass" style="border-radius:1rem;padding:2rem">
+    <form method="post" enctype="multipart/form-data">
+      {% csrf_token %}
+      {% for field in form %}
+      <div style="margin-bottom:1.1rem">
+        <label style="display:block;color:#94a3b8;font-size:.75rem;font-weight:500;margin-bottom:.35rem">
+          {{ field.label }}{% if field.field.required %} *{% endif %}
+        </label>
+        {% if field.field.widget.input_type == 'textarea' %}
+          <textarea name="{{ field.html_name }}" rows="3" class="inp" style="resize:vertical">{{ field.value|default:'' }}</textarea>
+        {% elif field.field.widget.input_type == 'file' %}
+          <input type="file" name="{{ field.html_name }}" accept="image/*" class="inp"/>
+        {% elif field.field.widget.input_type == 'select' %}
+          <select name="{{ field.html_name }}" class="inp">
+            {% for val, lbl in field.field.choices %}
+              <option value="{{ val }}" {% if field.value|stringformat:"s" == val|stringformat:"s" %}selected{% endif %}>{{ lbl }}</option>
+            {% endfor %}
+          </select>
+        {% else %}
+          <input type="{{ field.field.widget.input_type }}" name="{{ field.html_name }}"
+                 value="{{ field.value|default:'' }}" class="inp"/>
+        {% endif %}
+        {% for error in field.errors %}
+          <p style="color:#f87171;font-size:.72rem;margin-top:.25rem">{{ error }}</p>
+        {% endfor %}
+        {% if field.help_text %}
+          <p style="color:#475569;font-size:.7rem;margin-top:.2rem">{{ field.help_text }}</p>
+        {% endif %}
+      </div>
+      {% endfor %}
+      <button type="submit" class="btn btn-blue" style="width:100%;padding:.65rem;margin-top:.5rem">
+        Save Product Model
+      </button>
+    </form>
+  </div>
+</div>
+{% endblock %}

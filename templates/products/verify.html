@@ -1,0 +1,342 @@
+{% extends "base.html" %}
+{% block title %}Verify Product — BlockVerify{% endblock %}
+
+{% block content %}
+
+<div style="max-width:40rem;margin:0 auto">
+
+  <!-- RESULT CARD -->
+  <div class="glass"
+       style="border-radius:1.25rem;
+              padding:2.5rem;
+              text-align:center;
+              margin-bottom:1.5rem;
+              position:relative;
+              overflow:hidden">
+
+    <!-- Background tint -->
+    <div style="position:absolute;
+                inset:0;
+                pointer-events:none;
+
+      {% if result.result == 'GENUINE' %}
+        background:radial-gradient(ellipse at center, rgba(16,185,129,.06) 0%, transparent 70%);
+      {% elif result.result == 'SUSPICIOUS' %}
+        background:radial-gradient(ellipse at center, rgba(245,158,11,.06) 0%, transparent 70%);
+      {% else %}
+        background:radial-gradient(ellipse at center, rgba(239,68,68,.06) 0%, transparent 70%);
+      {% endif %}
+    ">
+    </div>
+
+    <!-- Result icon -->
+    <div style="font-size:4.5rem;
+                margin-bottom:1rem;
+                animation:pulse-icon 2s ease-in-out infinite">
+
+      {% if result.result == 'GENUINE' %}
+        ✅
+      {% elif result.result == 'SUSPICIOUS' %}
+        ⚠️
+      {% else %}
+        ❌
+      {% endif %}
+    </div>
+
+    <!-- Result badge -->
+    <div style="display:inline-block;
+                padding:.5rem 2rem;
+                border-radius:9999px;
+                font-size:1.5rem;
+                font-weight:800;
+                letter-spacing:.05em;
+                margin-bottom:.75rem;
+
+      {% if result.result == 'GENUINE' %}
+        background:rgba(16,185,129,.15);
+        border:2px solid rgba(16,185,129,.4);
+        color:#34d399;
+      {% elif result.result == 'SUSPICIOUS' %}
+        background:rgba(245,158,11,.15);
+        border:2px solid rgba(245,158,11,.4);
+        color:#fbbf24;
+      {% else %}
+        background:rgba(239,68,68,.15);
+        border:2px solid rgba(239,68,68,.4);
+        color:#f87171;
+      {% endif %}
+    ">
+      {{ result.result }}
+    </div>
+
+    <p style="color:#94a3b8;
+              font-size:.9rem;
+              margin-bottom:1.5rem">
+      {{ result.message }}
+    </p>
+
+    <!-- CHECKS -->
+    <div style="display:grid;
+                grid-template-columns:repeat(3,1fr);
+                gap:.75rem;
+                margin-bottom:1.5rem">
+
+      <!-- Check 1 -->
+      <div style="background:rgba(13,20,40,.6);
+                  border-radius:.75rem;
+                  padding:.75rem">
+
+        <div style="font-size:1.4rem;margin-bottom:.3rem">
+          {% if result.checks.hash_valid %}
+            ✅
+          {% else %}
+            ❌
+          {% endif %}
+        </div>
+
+        <p style="font-size:.72rem;color:#64748b;font-weight:500">
+          Check 1
+        </p>
+
+        <p style="font-size:.75rem;color:#94a3b8">
+          Hash in blockchain
+        </p>
+      </div>
+
+      <!-- Check 2 -->
+      <div style="background:rgba(13,20,40,.6);
+                  border-radius:.75rem;
+                  padding:.75rem">
+
+        <div style="font-size:1.4rem;margin-bottom:.3rem">
+          {% if result.checks.supply_chain_valid %}
+            ✅
+          {% elif result.checks.supply_chain_valid == False %}
+            ⚠️
+          {% else %}
+            —
+          {% endif %}
+        </div>
+
+        <p style="font-size:.72rem;color:#64748b;font-weight:500">
+          Check 2
+        </p>
+
+        <p style="font-size:.75rem;color:#94a3b8">
+          Supply chain valid
+        </p>
+      </div>
+
+      <!-- Check 3 -->
+      <div style="background:rgba(13,20,40,.6);
+                  border-radius:.75rem;
+                  padding:.75rem">
+
+        <div style="font-size:1.4rem;margin-bottom:.3rem">
+          {% if result.checks.no_duplicate %}
+            ✅
+          {% elif result.checks.no_duplicate == False %}
+            ⚠️
+          {% else %}
+            —
+          {% endif %}
+        </div>
+
+        <p style="font-size:.72rem;color:#64748b;font-weight:500">
+          Check 3
+        </p>
+
+        <p style="font-size:.75rem;color:#94a3b8">
+          No duplicate scan
+        </p>
+      </div>
+    </div>
+
+    <!-- Product info -->
+    {% if unit %}
+    <div style="background:rgba(13,20,40,.6);
+                border-radius:.75rem;
+                padding:1rem;
+                text-align:left;
+                margin-bottom:1rem">
+
+      <div style="display:grid;
+                  grid-template-columns:1fr 1fr;
+                  gap:.6rem">
+
+        <div>
+          <p style="color:#475569;font-size:.68rem">Product</p>
+          <p style="color:#f1f5f9;font-size:.85rem;font-weight:500">
+            {{ unit.model.name }}
+          </p>
+        </div>
+
+        <div>
+          <p style="color:#475569;font-size:.68rem">Brand</p>
+          <p style="color:#f1f5f9;font-size:.85rem">
+            {{ unit.model.brand }}
+          </p>
+        </div>
+
+        <div>
+          <p style="color:#475569;font-size:.68rem">Serial Number</p>
+          <p class="mono" style="color:#60a5fa;font-size:.72rem">
+            {{ unit.serial_number }}
+          </p>
+        </div>
+
+        <div>
+          <p style="color:#475569;font-size:.68rem">Status</p>
+
+          <span class="badge
+            {% if unit.status == 'REGISTERED' %}
+              bg
+            {% elif unit.status == 'FLAGGED' %}
+              bf
+            {% else %}
+              bs
+            {% endif %}
+          ">
+            {{ unit.status }}
+          </span>
+        </div>
+
+        <div>
+          <p style="color:#475569;font-size:.68rem">Manufacturer</p>
+
+          <p style="color:#94a3b8;font-size:.82rem">
+            {{ unit.model.manufacturer.company|default:unit.model.manufacturer.username }}
+          </p>
+        </div>
+
+        <div>
+          <p style="color:#475569;font-size:.68rem">Registered</p>
+
+          <p style="color:#94a3b8;font-size:.82rem">
+            {{ unit.created_at|date:"M d, Y" }}
+          </p>
+        </div>
+
+      </div>
+    </div>
+    {% endif %}
+
+    <!-- Scan location -->
+    {% if scan.geo_city or scan.scanner_ip %}
+    <p style="color:#334155;font-size:.72rem">
+
+      Scan location:
+      {{ scan.geo_city|default:"—" }},
+      {{ scan.geo_country|default:"—" }}
+
+      &nbsp;·&nbsp;
+
+      IP:
+      {{ scan.scanner_ip|default:"—" }}
+
+    </p>
+    {% endif %}
+  </div>
+
+  <!-- Product Hash -->
+  <div class="glass card" style="margin-bottom:1.25rem">
+
+    <p style="color:#475569;font-size:.72rem;margin-bottom:.35rem">
+      Product Hash (SHA-256)
+    </p>
+
+    <p class="hash" style="color:#3b82f6">
+      {{ product_hash }}
+    </p>
+  </div>
+
+  <!-- Blockchain History -->
+  {% if blockchain_history %}
+  <div class="glass"
+       style="border-radius:.875rem;
+              overflow:hidden;
+              margin-bottom:1.5rem">
+
+    <div style="padding:.8rem 1rem;
+                border-bottom:1px solid rgba(59,130,246,.1)">
+
+      <p class="section-title" style="margin:0">
+        ⛓️ Blockchain History — {{ blockchain_history|length }} block(s)
+      </p>
+    </div>
+
+    {% for block in blockchain_history %}
+    <div style="padding:.9rem 1rem;
+                border-bottom:1px solid rgba(59,130,246,.05)">
+
+      <div style="display:flex;
+                  align-items:center;
+                  gap:.6rem;
+                  margin-bottom:.4rem">
+
+        <span class="mono"
+              style="font-size:.72rem;
+                     color:#60a5fa;
+                     background:rgba(37,99,235,.12);
+                     padding:.1rem .45rem;
+                     border-radius:.25rem;
+                     border:1px solid rgba(59,130,246,.18)">
+
+          #{{ block.index }}
+        </span>
+
+        <span style="font-size:.82rem;
+                     font-weight:500;
+                     color:#e2e8f0">
+
+          {{ block.event_type }}
+        </span>
+
+        <span style="margin-left:auto;
+                     color:#334155;
+                     font-size:.7rem">
+
+          {{ block.created_at|timesince }} ago
+        </span>
+      </div>
+
+      <p style="color:#64748b;
+                font-size:.75rem;
+                margin-bottom:.3rem">
+
+        {{ block.actor_username }}
+        ({{ block.actor_role }})
+
+        {% if block.extra_data.to %}
+          → {{ block.extra_data.to }}
+        {% endif %}
+      </p>
+
+      <p class="hash" style="color:#1e3a5f">
+        {{ block.block_hash }}
+      </p>
+    </div>
+    {% endfor %}
+  </div>
+  {% endif %}
+
+  <div style="text-align:center">
+    <a href="/" style="color:#60a5fa;font-size:.85rem">
+      ← Verify another product
+    </a>
+  </div>
+</div>
+
+<style>
+@keyframes pulse-icon {
+  0%,100% {
+    transform: scale(1);
+  }
+
+  50% {
+    transform: scale(1.05);
+  }
+}
+</style>
+
+{% endblock %}

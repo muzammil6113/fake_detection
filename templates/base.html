@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>{% block title %}BlockVerify{% endblock %}</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    *{box-sizing:border-box}
+    body{background:#060b14;color:#e2e8f0;font-family:'Segoe UI',system-ui,sans-serif;min-height:100vh}
+    .glass{background:rgba(13,20,40,.8);backdrop-filter:blur(16px);
+           border:1px solid rgba(59,130,246,.13)}
+    .mono{font-family:'Courier New',Courier,monospace}
+    .hash{font-family:'Courier New',Courier,monospace;font-size:.7rem;word-break:break-all;line-height:1.4}
+    .btn{display:inline-block;padding:.5rem 1.2rem;border-radius:.6rem;
+         font-weight:500;cursor:pointer;border:none;transition:.2s;font-size:.875rem}
+    .btn-blue{background:#2563eb;color:#fff}.btn-blue:hover{background:#1d4ed8}
+    .btn-ghost{border:1px solid rgba(59,130,246,.3);color:#94a3b8;background:transparent}
+    .btn-ghost:hover{border-color:#3b82f6;color:#fff}
+    .inp{background:#0d1428;border:1px solid rgba(59,130,246,.2);border-radius:.5rem;
+         padding:.5rem .75rem;color:#e2e8f0;font-size:.875rem;outline:none;transition:.2s;width:100%}
+    .inp:focus{border-color:#3b82f6}
+    .badge{display:inline-block;padding:.15rem .7rem;border-radius:9999px;
+           font-size:.7rem;font-weight:700;letter-spacing:.02em}
+    .bg{background:rgba(16,185,129,.12);border:1px solid rgba(16,185,129,.35);color:#34d399}
+    .bs{background:rgba(245,158,11,.12);border:1px solid rgba(245,158,11,.35);color:#fbbf24}
+    .bf{background:rgba(239,68,68,.12);border:1px solid rgba(239,68,68,.35);color:#f87171}
+    .card{border-radius:.875rem;padding:1.25rem}
+    table{width:100%;border-collapse:collapse}
+    th,td{text-align:left;padding:.7rem 1rem}
+    tr{border-bottom:1px solid rgba(59,130,246,.06)}
+    tr:hover td{background:rgba(30,58,138,.12)}
+    .section-title{font-size:1rem;font-weight:600;color:#f1f5f9;margin-bottom:1rem}
+  </style>
+  {% block extra_head %}{% endblock %}
+</head>
+<body>
+
+<!-- NAV -->
+<nav style="background:rgba(6,11,20,.92);backdrop-filter:blur(12px);
+            border-bottom:1px solid rgba(59,130,246,.1);
+            position:sticky;top:0;z-index:50">
+  <div style="max-width:72rem;margin:0 auto;padding:0 1rem;
+              display:flex;align-items:center;justify-content:space-between;height:3.5rem">
+
+    <a href="/" style="display:flex;align-items:center;gap:.5rem;
+                        color:#60a5fa;font-weight:700;font-size:1.1rem;text-decoration:none">
+      <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round"
+          d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618
+             3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03
+             9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
+      </svg>
+      BlockVerify
+    </a>
+
+    <div style="display:flex;align-items:center;gap:1.25rem;font-size:.85rem">
+      {% if user.is_authenticated %}
+        <a href="/dashboard/" style="color:#94a3b8;text-decoration:none" class="nav-link">Dashboard</a>
+        <a href="/chain/"     style="color:#94a3b8;text-decoration:none" class="nav-link">⛓️ Chain</a>
+        <span style="color:#334155">|</span>
+        <span style="color:#64748b;font-size:.75rem">
+          {{ user.username }}
+          <span style="color:#3b82f6">·{{ user.role }}</span>
+        </span>
+        <a href="/accounts/logout/" style="color:#94a3b8;text-decoration:none" class="nav-link">Logout</a>
+      {% else %}
+        <a href="/accounts/login/"    style="color:#94a3b8;text-decoration:none" class="nav-link">Login</a>
+        <a href="/accounts/register/" class="btn btn-blue" style="font-size:.8rem">Register</a>
+      {% endif %}
+    </div>
+  </div>
+</nav>
+
+<style>
+  .nav-link:hover{color:#60a5fa!important}
+</style>
+
+<!-- MESSAGES -->
+{% if messages %}
+<div style="max-width:72rem;margin:.75rem auto;padding:0 1rem">
+  {% for msg in messages %}
+  <div class="badge {% if 'success' in msg.tags %}bg{% elif 'error' in msg.tags %}bf{% else %}bs{% endif %}"
+       style="display:block;padding:.6rem 1rem;border-radius:.5rem;margin-bottom:.4rem;font-size:.85rem;font-weight:400">
+    {{ msg }}
+  </div>
+  {% endfor %}
+</div>
+{% endif %}
+
+<!-- MAIN -->
+<main style="max-width:72rem;margin:0 auto;padding:2rem 1rem">
+  {% block content %}{% endblock %}
+</main>
+
+<footer style="text-align:center;color:#334155;font-size:.75rem;
+               padding:2rem;border-top:1px solid rgba(59,130,246,.08);margin-top:3rem">
+  BlockVerify — Blockchain Anti-Counterfeit System &nbsp;·&nbsp; Django + SHA-256 + Proof-of-Work
+</footer>
+
+{% block extra_js %}{% endblock %}
+</body>
+</html>

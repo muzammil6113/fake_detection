@@ -1,0 +1,114 @@
+{% extends "base.html" %}
+{% block title %}BlockVerify — Blockchain Anti-Counterfeit System{% endblock %}
+{% block content %}
+
+<!-- HERO -->
+<div style="text-align:center;padding:4rem 0 3rem">
+  <div style="display:inline-flex;align-items:center;gap:.5rem;padding:.35rem 1rem;
+              border-radius:9999px;font-size:.75rem;color:#60a5fa;
+              background:rgba(37,99,235,.1);border:1px solid rgba(59,130,246,.25);margin-bottom:1.5rem">
+    <span style="width:.4rem;height:.4rem;border-radius:50%;background:#60a5fa;animation:pulse 2s infinite"></span>
+    SHA-256 · Proof-of-Work · IPInfo Geolocation · SendGrid · Twilio SMS
+  </div>
+
+  <h1 style="font-size:2.8rem;font-weight:800;line-height:1.15;margin-bottom:1rem">
+    Stop Counterfeit Products<br/>
+    <span style="color:#3b82f6">With Blockchain</span>
+  </h1>
+
+  <p style="color:#94a3b8;font-size:1.1rem;max-width:38rem;margin:0 auto 2.5rem">
+    Every physical product gets a unique QR code backed by an immutable blockchain record.
+    Three-layer verification: hash check + supply chain + geo clone detection.
+  </p>
+
+  <div style="display:flex;gap:1rem;justify-content:center;flex-wrap:wrap">
+    <a href="/accounts/register/" class="btn btn-blue" style="font-size:1rem;padding:.7rem 1.75rem">
+      Get Started →
+    </a>
+    <a href="#features" class="btn btn-ghost" style="font-size:1rem;padding:.7rem 1.75rem">
+      How it works ↓
+    </a>
+  </div>
+</div>
+
+<!-- QUICK VERIFY -->
+<div style="max-width:36rem;margin:0 auto 4rem">
+  <div class="glass card" style="padding:1.5rem">
+    <p style="color:#64748b;font-size:.8rem;text-align:center;margin-bottom:.75rem">
+      Quick Verify — paste product hash or scan QR
+    </p>
+    <div style="display:flex;gap:.5rem">
+      <input id="qv" type="text" maxlength="64" placeholder="Paste 64-character product hash…"
+             class="inp mono" style="flex:1"/>
+      <button onclick="doVerify()" class="btn btn-blue" style="white-space:nowrap">Verify</button>
+    </div>
+  </div>
+</div>
+
+<!-- FEATURES -->
+<h2 id="features" style="font-size:1.5rem;font-weight:700;text-align:center;margin-bottom:2rem">
+  What makes BlockVerify advanced
+</h2>
+<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:1rem;margin-bottom:4rem">
+  {% for icon, title, desc in features %}
+  <div class="glass card">
+    <div style="font-size:2rem;margin-bottom:.75rem">{{ icon }}</div>
+    <h3 style="font-weight:600;color:#f1f5f9;margin-bottom:.5rem">{{ title }}</h3>
+    <p style="color:#94a3b8;font-size:.85rem;line-height:1.6">{{ desc }}</p>
+  </div>
+  {% endfor %}
+</div>
+
+<!-- HOW IT WORKS -->
+<div class="glass" style="border-radius:1rem;padding:2.5rem;margin-bottom:2rem">
+  <h2 style="font-size:1.25rem;font-weight:700;text-align:center;margin-bottom:2rem">
+    How It Works — 4 Steps
+  </h2>
+  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:2rem">
+    {% for step, label in steps %}
+    <div style="text-align:center">
+      <div style="width:2.5rem;height:2.5rem;border-radius:50%;background:#1d4ed8;
+                  display:flex;align-items:center;justify-content:center;
+                  font-weight:700;color:#fff;margin:0 auto .75rem;font-size:1rem">
+        {{ forloop.counter }}
+      </div>
+      <p style="font-weight:500;color:#e2e8f0;font-size:.9rem">{{ step }}</p>
+      <p style="color:#64748b;font-size:.78rem;margin-top:.35rem">{{ label }}</p>
+    </div>
+    {% endfor %}
+  </div>
+</div>
+
+<!-- ROLES -->
+<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:1rem">
+  <div class="glass card" style="border-left:3px solid #3b82f6">
+    <h3 style="font-weight:600;color:#60a5fa;margin-bottom:.5rem">🏭 Manufacturer</h3>
+    <p style="color:#94a3b8;font-size:.85rem">Register product models, generate units with QR + blockchain, track all scans and alerts.</p>
+  </div>
+  <div class="glass card" style="border-left:3px solid #8b5cf6">
+    <h3 style="font-weight:600;color:#a78bfa;margin-bottom:.5rem">🚚 Distributor</h3>
+    <p style="color:#94a3b8;font-size:.85rem">Receive transferred units, scan to verify, transfer onward to sellers. Every step on-chain.</p>
+  </div>
+  <div class="glass card" style="border-left:3px solid #10b981">
+    <h3 style="font-weight:600;color:#34d399;margin-bottom:.5rem">🛒 Customer</h3>
+    <p style="color:#94a3b8;font-size:.85rem">Scan QR to verify. Get instant GENUINE / SUSPICIOUS / FAKE verdict with full audit trail.</p>
+  </div>
+</div>
+
+<style>
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.5}}
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function doVerify(){
+  const h = document.getElementById('qv').value.trim();
+  if(h.length === 64) window.location = `/verify/${h}/`;
+  else alert('Please enter a valid 64-character SHA-256 hash.');
+}
+document.getElementById('qv').addEventListener('keydown', e => {
+  if(e.key === 'Enter') doVerify();
+});
+</script>
+{% endblock %}

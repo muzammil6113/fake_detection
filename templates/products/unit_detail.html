@@ -1,0 +1,149 @@
+{% extends "base.html" %}
+{% block title %}{{ unit.serial_number }} — BlockVerify{% endblock %}
+{% block content %}
+
+<div style="max-width:52rem;margin:0 auto">
+
+  <!-- QR + info row -->
+  <div style="display:flex;gap:1.25rem;flex-wrap:wrap;margin-bottom:1.5rem">
+
+    <!-- QR box -->
+    <div class="glass card" style="display:flex;flex-direction:column;align-items:center;gap:.75rem;min-width:fit-content">
+      {% if unit.qr_code %}
+        <img src="{{ unit.qr_code.url }}"
+             style="width:8rem;height:8rem;border-radius:.5rem;background:#fff;padding:3px"/>
+      {% else %}
+        <div style="width:8rem;height:8rem;background:#0d1428;border-radius:.5rem;
+                    display:flex;align-items:center;justify-content:center;font-size:3rem">📦</div>
+      {% endif %}
+      <a href="/verify/{{ unit.product_hash }}/" target="_blank"
+         style="color:#60a5fa;font-size:.75rem;text-decoration:none">Open verify ↗</a>
+    </div>
+
+    <!-- Info box -->
+    <div class="glass card" style="flex:1;min-width:16rem">
+      <p style="color:#475569;font-size:.72rem;margin-bottom:.15rem">Serial Number</p>
+      <p class="mono" style="color:#60a5fa;font-size:.9rem;font-weight:500;margin-bottom:1rem">
+        {{ unit.serial_number }}
+      </p>
+
+      <p style="color:#475569;font-size:.72rem;margin-bottom:.15rem">SHA-256 Product Hash</p>
+      <p class="hash" style="color:#64748b;margin-bottom:1rem">{{ unit.product_hash }}</p>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:.75rem 1.5rem">
+        <div>
+          <p style="color:#475569;font-size:.72rem">Product</p>
+          <p style="color:#f1f5f9;font-size:.85rem">{{ unit.model.name }}</p>
+        </div>
+        <div>
+          <p style="color:#475569;font-size:.72rem">Brand</p>
+          <p style="color:#f1f5f9;font-size:.85rem">{{ unit.model.brand }}</p>
+        </div>
+        <div>
+          <p style="color:#475569;font-size:.72rem">Status</p>
+          <span class="badge
+            {% if unit.status == 'REGISTERED' %}bg
+            {% elif unit.status == 'FLAGGED' %}bf
+            {% else %}bs{% endif %}">{{ unit.status }}</span>
+        </div>
+        <div>
+          <p style="color:#475569;font-size:.72rem">Current Owner</p>
+          <p style="color:#f1f5f9;font-size:.85rem">{{ unit.current_owner.username|default:"—" }}</p>
+        </div>
+        <div>
+          <p style="color:#475569;font-size:.72rem">Manufacturer</p>
+          <p style="color:#f1f5f9;font-size:.85rem">
+            {{ unit.model.manufacturer.company|default:unit.model.manufacturer.username }}
+          </p>
+        </div>
+        <div>
+          <p style="color:#475569;font-size:.72rem">Registered</p>
+          <p style="color:#94a3b8;font-size:.85rem">{{ unit.created_at|date:"M d, Y" }}</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Transfer form (only current owner) -->
+  {% if request.user == unit.current_owner %}
+  <div class="glass card" style="margin-bottom:1.5rem">
+    <p class="section-title">Transfer Ownership</p>
+    <form method="post" action="/units/{{ unit.serial_number }}/transfer/"
+          style="display:flex;flex-wrap:wrap;gap:.6rem;align-items:center">
+      {% csrf_token %}
+      <input type="text" name="to_username" placeholder="Recipient username"
+             class="inp" style="flex:1;min-width:12rem"/>
+      <input type="text" name="notes" placeholder="Notes (optional)"
+             class="inp" style="flex:1;min-width:12rem"/>
+      <button type="submit" class="btn btn-blue" style="white-space:nowrap">Transfer →</button>
+    </form>
+    <p style="color:#334155;font-size:.72rem;margin-top:.5rem">
+      Transfer is recorded as an immutable blockchain event.
+    </p>
+  </div>
+  {% endif %}
+
+  <!-- Transfer history -->
+  {% if transfers %}
+  <div class="glass" style="border-radius:.875rem;overflow:hidden;margin-bottom:1.5rem">
+    <div style="padding:.8rem 1rem;border-bottom:1px solid rgba(59,130,246,.1)">
+      <p class="section-title" style="margin:0">🔄 Supply Chain Transfers</p>
+    </div>
+    {% for t in transfers %}
+    <div style="padding:.9rem 1rem;border-bottom:1px solid rgba(59,130,246,.06)">
+      <div style="display:flex;justify-content:space-between;align-items:center">
+        <span style="font-size:.85rem;color:#94a3b8">
+          <span style="color:#64748b">{{ t.from_user.username|default:"—" }}</span>
+          <span style="color:#475569;margin:0 .4rem">→</span>
+          <span style="color:#f1f5f9">{{ t.to_user.username|default:"—" }}</span>
+          <span style="color:#475569;font-size:.72rem;margin-left:.5rem">
+            ({{ t.to_user.role|default:"" }})
+          </span>
+        </span>
+        <span style="color:#334155;font-size:.72rem">{{ t.transferred_at|timesince }} ago</span>
+      </div>
+      {% if t.notes %}
+        <p style="color:#64748b;font-size:.75rem;margin-top:.35rem">{{ t.notes }}</p>
+      {% endif %}
+      {% if t.block_hash %}
+        <p class="hash" style="color:#1e293b;margin-top:.35rem">{{ t.block_hash }}</p>
+      {% endif %}
+    </div>
+    {% endfor %}
+  </div>
+  {% endif %}
+
+  <!-- Blockchain history -->
+  <div class="glass" style="border-radius:.875rem;overflow:hidden;margin-bottom:1.5rem">
+    <div style="padding:.8rem 1rem;border-bottom:1px solid rgba(59,130,246,.1)">
+      <p class="section-title" style="margin:0">⛓️ Blockchain History ({{ history|length }} blocks)</p>
+    </div>
+    {% for block in history %}
+    <div style="padding:.9rem 1rem;border-bottom:1px solid rgba(59,130,246,.05)">
+      <div style="display:flex;align-items:center;gap:.6rem;margin-bottom:.5rem">
+        <span class="mono" style="font-size:.72rem;color:#60a5fa;
+                                   background:rgba(37,99,235,.15);padding:.1rem .5rem;
+                                   border-radius:.3rem;border:1px solid rgba(59,130,246,.2)">
+          #{{ block.index }}
+        </span>
+        <span style="font-size:.85rem;font-weight:500;color:#e2e8f0">{{ block.event_type }}</span>
+        <span style="margin-left:auto;color:#334155;font-size:.72rem">{{ block.created_at|timesince }} ago</span>
+      </div>
+      <p style="color:#64748b;font-size:.78rem;margin-bottom:.35rem">
+        Actor: <span style="color:#94a3b8">{{ block.actor_username }}</span>
+        ({{ block.actor_role }})
+        {% if block.extra_data.from %}
+          → <span style="color:#94a3b8">{{ block.extra_data.to }}</span>
+        {% endif %}
+      </p>
+      <p class="hash" style="color:#1e293b">{{ block.block_hash }}</p>
+    </div>
+    {% empty %}
+    <p style="padding:2rem;text-align:center;color:#334155">No blockchain records.</p>
+    {% endfor %}
+  </div>
+
+  <a href="/dashboard/" style="color:#60a5fa;font-size:.85rem">← Back to dashboard</a>
+</div>
+
+{% endblock %}

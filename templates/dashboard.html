@@ -1,0 +1,230 @@
+{% extends "base.html" %}
+{% block title %}Dashboard — BlockVerify{% endblock %}
+{% block content %}
+
+<div style="display:flex;align-items:flex-start;justify-content:space-between;
+            flex-wrap:wrap;gap:1rem;margin-bottom:2rem">
+  <div>
+    <h1 style="font-size:1.75rem;font-weight:700;color:#f1f5f9">Dashboard</h1>
+    <p style="color:#64748b;font-size:.85rem;margin-top:.25rem">
+      {{ user.get_full_name|default:user.username }}
+      <span style="color:#3b82f6"> · {{ user.role }}</span>
+      {% if user.company %}<span style="color:#334155"> · {{ user.company }}</span>{% endif %}
+    </p>
+  </div>
+  {% if user.is_manufacturer %}
+    <a href="/products/new/" class="btn btn-blue">+ New Product Model</a>
+  {% endif %}
+</div>
+
+<!-- ═══════════════════════════════════════════════ MANUFACTURER ═══ -->
+{% if user.is_manufacturer %}
+
+<!-- Stats -->
+<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:1rem;margin-bottom:2rem">
+  <div class="glass card">
+    <p style="color:#64748b;font-size:.75rem;margin-bottom:.35rem">Product Models</p>
+    <p style="font-size:1.75rem;font-weight:700;color:#f1f5f9">{{ models|length }}</p>
+  </div>
+  <div class="glass card">
+    <p style="color:#64748b;font-size:.75rem;margin-bottom:.35rem">Total Units</p>
+    <p style="font-size:1.75rem;font-weight:700;color:#f1f5f9">{{ total_units }}</p>
+  </div>
+  <div class="glass card">
+    <p style="color:#64748b;font-size:.75rem;margin-bottom:.35rem">Flagged Units</p>
+    <p style="font-size:1.75rem;font-weight:700;color:#f87171">{{ flagged }}</p>
+  </div>
+  <div class="glass card" style="cursor:default">
+    <p style="color:#64748b;font-size:.75rem;margin-bottom:.35rem">Scans (24h)</p>
+    <p style="font-size:1.75rem;font-weight:700;color:#60a5fa" id="stat24">—</p>
+  </div>
+</div>
+
+<!-- Live scan bar chart -->
+<div class="glass card" style="margin-bottom:2rem">
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem">
+    <p class="section-title" style="margin:0">Scan Results Overview</p>
+    <div style="display:flex;gap:1rem;font-size:.75rem">
+      <span style="color:#34d399">● Genuine</span>
+      <span style="color:#fbbf24">● Suspicious</span>
+      <span style="color:#f87171">● Fake</span>
+    </div>
+  </div>
+  <div id="bar-wrap" style="display:flex;align-items:flex-end;gap:.5rem;height:3rem">
+    <div id="bar-g" style="background:#059669;border-radius:.25rem;min-width:8px;height:0;transition:.5s;position:relative">
+      <span id="lbl-g" style="position:absolute;top:-1.2rem;left:50%;transform:translateX(-50%);
+                               font-size:.65rem;color:#34d399;white-space:nowrap"></span>
+    </div>
+    <div id="bar-s" style="background:#d97706;border-radius:.25rem;min-width:8px;height:0;transition:.5s;position:relative">
+      <span id="lbl-s" style="position:absolute;top:-1.2rem;left:50%;transform:translateX(-50%);
+                               font-size:.65rem;color:#fbbf24;white-space:nowrap"></span>
+    </div>
+    <div id="bar-f" style="background:#dc2626;border-radius:.25rem;min-width:8px;height:0;transition:.5s;position:relative">
+      <span id="lbl-f" style="position:absolute;top:-1.2rem;left:50%;transform:translateX(-50%);
+                               font-size:.65rem;color:#f87171;white-space:nowrap"></span>
+    </div>
+  </div>
+</div>
+
+<!-- Product Models grid -->
+<p class="section-title">Your Product Models</p>
+{% if models %}
+<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:1rem;margin-bottom:2.5rem">
+  {% for pm in models %}
+  <a href="/products/{{ pm.pk }}/"
+     style="text-decoration:none"
+     class="glass card hover-card">
+    {% if pm.image %}
+      <img src="{{ pm.image.url }}" style="width:100%;height:7rem;object-fit:cover;border-radius:.5rem;margin-bottom:.75rem"/>
+    {% else %}
+      <div style="width:100%;height:7rem;background:#0d1428;border-radius:.5rem;
+                  display:flex;align-items:center;justify-content:center;
+                  font-size:2.5rem;margin-bottom:.75rem">📦</div>
+    {% endif %}
+    <p class="mono" style="color:#3b82f6;font-size:.72rem;margin-bottom:.25rem">{{ pm.model_code }}</p>
+    <h3 style="font-weight:600;color:#f1f5f9;font-size:.95rem">{{ pm.name }}</h3>
+    <p style="color:#64748b;font-size:.78rem;margin-top:.25rem">{{ pm.brand }} · {{ pm.unit_count }} units</p>
+  </a>
+  {% endfor %}
+</div>
+{% else %}
+<div class="glass card" style="text-align:center;padding:3rem;margin-bottom:2.5rem">
+  <p style="font-size:2.5rem;margin-bottom:.75rem">📦</p>
+  <p style="color:#64748b">No product models yet.
+    <a href="/products/new/" style="color:#60a5fa">Create your first →</a>
+  </p>
+</div>
+{% endif %}
+
+<!-- Recent scans -->
+<p class="section-title">Recent Scan Activity</p>
+<div class="glass" style="border-radius:.875rem;overflow:hidden">
+  <table>
+    <thead>
+      <tr style="border-bottom:1px solid rgba(59,130,246,.12)">
+        <th style="color:#475569;font-size:.72rem;font-weight:600">Serial</th>
+        <th style="color:#475569;font-size:.72rem;font-weight:600">Location</th>
+        <th style="color:#475569;font-size:.72rem;font-weight:600">Result</th>
+        <th style="color:#475569;font-size:.72rem;font-weight:600">IP</th>
+        <th style="color:#475569;font-size:.72rem;font-weight:600">When</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for s in recent_scans %}
+      <tr>
+        <td class="mono" style="font-size:.72rem;color:#94a3b8">{{ s.unit.serial_number|default:"—" }}</td>
+        <td style="font-size:.78rem;color:#64748b">{{ s.geo_city|default:"—" }}, {{ s.geo_country|default:"—" }}</td>
+        <td>
+          <span class="badge {% if s.result == 'GENUINE' %}bg{% elif s.result == 'SUSPICIOUS' %}bs{% else %}bf{% endif %}">
+            {{ s.result }}
+          </span>
+        </td>
+        <td class="mono" style="font-size:.68rem;color:#475569">{{ s.scanner_ip|default:"—" }}</td>
+        <td style="font-size:.75rem;color:#475569">{{ s.scanned_at|timesince }} ago</td>
+      </tr>
+      {% empty %}
+      <tr><td colspan="5" style="text-align:center;color:#334155;padding:2rem">No scans yet.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+<!-- ═══════════════════════════════════════════════ DISTRIBUTOR ═══ -->
+{% elif user.is_distributor %}
+<p class="section-title">Units in your possession</p>
+<div class="glass" style="border-radius:.875rem;overflow:hidden">
+  <table>
+    <thead>
+      <tr style="border-bottom:1px solid rgba(59,130,246,.12)">
+        <th style="color:#475569;font-size:.72rem;font-weight:600">Serial</th>
+        <th style="color:#475569;font-size:.72rem;font-weight:600">Product</th>
+        <th style="color:#475569;font-size:.72rem;font-weight:600">Status</th>
+        <th style="color:#475569;font-size:.72rem;font-weight:600">Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for unit in owned_units %}
+      <tr>
+        <td class="mono" style="font-size:.72rem;color:#94a3b8">{{ unit.serial_number }}</td>
+        <td style="font-size:.85rem;color:#cbd5e1">{{ unit.model.name }}</td>
+        <td><span class="badge bs">{{ unit.status }}</span></td>
+        <td>
+          <a href="/units/{{ unit.serial_number }}/" style="color:#60a5fa;font-size:.8rem">View / Transfer</a>
+        </td>
+      </tr>
+      {% empty %}
+      <tr><td colspan="4" style="text-align:center;color:#334155;padding:2rem">No units assigned to you.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+<!-- ═══════════════════════════════════════════════ CUSTOMER ══════ -->
+{% else %}
+<p style="color:#64748b;font-size:.875rem;margin-bottom:1.5rem">
+  Scan any product QR code to verify authenticity.
+  <a href="/" style="color:#60a5fa"> Use quick verify on home page →</a>
+</p>
+<p class="section-title">Your Scan History</p>
+<div class="glass" style="border-radius:.875rem;overflow:hidden">
+  <table>
+    <thead>
+      <tr style="border-bottom:1px solid rgba(59,130,246,.12)">
+        <th style="color:#475569;font-size:.72rem;font-weight:600">Hash (preview)</th>
+        <th style="color:#475569;font-size:.72rem;font-weight:600">Result</th>
+        <th style="color:#475569;font-size:.72rem;font-weight:600">Product</th>
+        <th style="color:#475569;font-size:.72rem;font-weight:600">When</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for s in scan_history %}
+      <tr>
+        <td class="mono" style="font-size:.68rem;color:#475569">{{ s.product_hash_scanned|slice:":22" }}…</td>
+        <td>
+          <span class="badge {% if s.result == 'GENUINE' %}bg{% elif s.result == 'SUSPICIOUS' %}bs{% else %}bf{% endif %}">
+            {{ s.result }}
+          </span>
+        </td>
+        <td style="font-size:.8rem;color:#94a3b8">{{ s.unit.model.name|default:"—" }}</td>
+        <td style="font-size:.75rem;color:#475569">{{ s.scanned_at|timesince }} ago</td>
+      </tr>
+      {% empty %}
+      <tr><td colspan="4" style="text-align:center;color:#334155;padding:2rem">No scans yet.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endif %}
+
+<style>
+.hover-card:hover{border-color:rgba(59,130,246,.4)!important;transform:translateY(-2px)}
+.hover-card{transition:.2s}
+</style>
+
+{% endblock %}
+
+{% block extra_js %}
+{% if user.is_manufacturer %}
+<script>
+fetch('/api/scan-stats/')
+  .then(r=>r.json())
+  .then(d=>{
+    document.getElementById('stat24').textContent = d.scans_24h;
+    const total = d.genuine + d.suspicious + d.fake || 1;
+    const MAX_H = 48;
+    const bg = document.getElementById('bar-g');
+    const bs = document.getElementById('bar-s');
+    const bf = document.getElementById('bar-f');
+    bg.style.width = Math.max(30, (d.genuine/total)*180)+'px';
+    bg.style.height = Math.max(4,(d.genuine/total)*MAX_H)+'px';
+    bs.style.width = Math.max(30, (d.suspicious/total)*180)+'px';
+    bs.style.height = Math.max(4,(d.suspicious/total)*MAX_H)+'px';
+    bf.style.width = Math.max(30, (d.fake/total)*180)+'px';
+    bf.style.height = Math.max(4,(d.fake/total)*MAX_H)+'px';
+    document.getElementById('lbl-g').textContent = d.genuine;
+    document.getElementById('lbl-s').textContent = d.suspicious;
+    document.getElementById('lbl-f').textContent = d.fake;
+  }).catch(()=>{});
+</script>
+{% endif %}
+{% endblock %}

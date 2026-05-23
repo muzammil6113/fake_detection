@@ -1,0 +1,95 @@
+{% extends "base.html" %}
+{% block title %}{{ pm.name }} — BlockVerify{% endblock %}
+{% block content %}
+
+<div style="display:flex;align-items:flex-start;justify-content:space-between;
+            flex-wrap:wrap;gap:1.5rem;margin-bottom:2rem">
+  <div>
+    <p class="mono" style="color:#3b82f6;font-size:.75rem;margin-bottom:.25rem">{{ pm.model_code }}</p>
+    <h1 style="font-size:1.75rem;font-weight:700;color:#f1f5f9">{{ pm.name }}</h1>
+    <p style="color:#64748b;font-size:.85rem;margin-top:.25rem">
+      {{ pm.brand }}
+      {% if pm.category %} · {{ pm.category }}{% endif %}
+      · {{ pm.unit_count }} units registered
+    </p>
+    {% if pm.description %}
+      <p style="color:#94a3b8;font-size:.85rem;margin-top:.5rem;max-width:32rem">{{ pm.description }}</p>
+    {% endif %}
+  </div>
+
+  <!-- Generate form -->
+  <div class="glass card">
+    <p style="color:#64748b;font-size:.75rem;font-weight:500;margin-bottom:.6rem">Generate Physical Units</p>
+    <form method="post" action="/products/{{ pm.pk }}/generate/"
+          style="display:flex;gap:.5rem;align-items:center">
+      {% csrf_token %}
+      <input type="number" name="quantity" min="1" max="500" value="10"
+             class="inp" style="width:5rem"/>
+      <button type="submit" class="btn btn-blue" style="white-space:nowrap">
+        Generate QR Units
+      </button>
+    </form>
+    <p style="color:#334155;font-size:.7rem;margin-top:.5rem">
+      Each: serial + SHA-256 hash + QR image + blockchain block
+    </p>
+  </div>
+</div>
+
+<!-- Units table -->
+<div class="glass" style="border-radius:.875rem;overflow:hidden">
+  <div style="padding:.9rem 1rem;border-bottom:1px solid rgba(59,130,246,.1);
+              display:flex;justify-content:space-between;align-items:center">
+    <p class="section-title" style="margin:0">Physical Units</p>
+    <span style="color:#475569;font-size:.75rem">{{ units|length }} total</span>
+  </div>
+  <div style="overflow-x:auto">
+    <table>
+      <thead>
+        <tr style="border-bottom:1px solid rgba(59,130,246,.1)">
+          <th style="color:#475569;font-size:.72rem;font-weight:600">Serial Number</th>
+          <th style="color:#475569;font-size:.72rem;font-weight:600">Hash (preview)</th>
+          <th style="color:#475569;font-size:.72rem;font-weight:600">Status</th>
+          <th style="color:#475569;font-size:.72rem;font-weight:600">QR Code</th>
+          <th style="color:#475569;font-size:.72rem;font-weight:600">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for unit in units %}
+        <tr>
+          <td class="mono" style="font-size:.72rem;color:#94a3b8">{{ unit.serial_number }}</td>
+          <td class="mono" style="font-size:.68rem;color:#475569">{{ unit.product_hash|slice:":20" }}…</td>
+          <td>
+            <span class="badge
+              {% if unit.status == 'REGISTERED' %}bg
+              {% elif unit.status == 'FLAGGED' %}bf
+              {% elif unit.status == 'SOLD' %}bg
+              {% else %}bs{% endif %}">
+              {{ unit.status }}
+            </span>
+          </td>
+          <td>
+            {% if unit.qr_code %}
+              <img src="{{ unit.qr_code.url }}"
+                   style="width:2.25rem;height:2.25rem;border-radius:.3rem;background:#fff;padding:2px"/>
+            {% else %}
+              <span style="color:#334155;font-size:.75rem">—</span>
+            {% endif %}
+          </td>
+          <td>
+            <a href="/units/{{ unit.serial_number }}/"
+               style="color:#60a5fa;font-size:.78rem;margin-right:.75rem">Detail</a>
+            <a href="/verify/{{ unit.product_hash }}/" target="_blank"
+               style="color:#34d399;font-size:.78rem">Verify ↗</a>
+          </td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="5" style="text-align:center;color:#334155;padding:2.5rem">
+          No units yet. Use the form above to generate.
+        </td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+{% endblock %}

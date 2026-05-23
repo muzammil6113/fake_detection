@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+{% block title %}Register — BlockVerify{% endblock %}
+{% block content %}
+<div style="max-width:28rem;margin:0 auto">
+  <h1 style="font-size:1.6rem;font-weight:700;text-align:center;margin-bottom:.35rem">Create Account</h1>
+  <p style="color:#64748b;font-size:.85rem;text-align:center;margin-bottom:1.5rem">
+    Choose your role carefully — it determines your system access.
+  </p>
+  <div class="glass" style="border-radius:1rem;padding:2rem">
+    <form method="post">
+      {% csrf_token %}
+      {% for field in form %}
+      <div style="margin-bottom:1rem">
+        <label style="display:block;color:#94a3b8;font-size:.75rem;font-weight:500;margin-bottom:.35rem">
+          {{ field.label }}{% if field.field.required %} *{% endif %}
+        </label>
+        {% if field.field.widget.input_type == 'select' %}
+          <select name="{{ field.html_name }}" class="inp">
+            {% for val, lbl in field.field.choices %}
+              <option value="{{ val }}" {% if field.value == val %}selected{% endif %}>{{ lbl }}</option>
+            {% endfor %}
+          </select>
+        {% elif field.field.widget.input_type == 'password' %}
+          <input type="password" name="{{ field.html_name }}" class="inp" autocomplete="new-password"/>
+        {% else %}
+          <input type="{{ field.field.widget.input_type }}" name="{{ field.html_name }}"
+                 value="{{ field.value|default:'' }}" class="inp"/>
+        {% endif %}
+        {% for error in field.errors %}
+          <p style="color:#f87171;font-size:.72rem;margin-top:.25rem">{{ error }}</p>
+        {% endfor %}
+        {% if field.help_text %}
+          <p style="color:#475569;font-size:.7rem;margin-top:.2rem">{{ field.help_text }}</p>
+        {% endif %}
+      </div>
+      {% endfor %}
+      <button type="submit" class="btn btn-blue" style="width:100%;margin-top:.5rem;padding:.65rem">
+        Create Account
+      </button>
+    </form>
+    <p style="text-align:center;color:#475569;font-size:.85rem;margin-top:1.25rem">
+      Already have an account?
+      <a href="/accounts/login/" style="color:#60a5fa">Login</a>
+    </p>
+  </div>
+</div>
+{% endblock %}

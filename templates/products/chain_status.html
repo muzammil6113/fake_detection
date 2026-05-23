@@ -1,0 +1,73 @@
+{% extends "base.html" %}
+{% block title %}Chain Status — BlockVerify{% endblock %}
+{% block content %}
+
+<div style="display:flex;align-items:center;gap:1rem;margin-bottom:1.5rem;flex-wrap:wrap">
+  <h1 style="font-size:1.75rem;font-weight:700;color:#f1f5f9">⛓️ Blockchain Explorer</h1>
+  <span class="badge {% if is_valid %}bg{% else %}bf{% endif %}"
+        style="font-size:.85rem;padding:.35rem 1rem">
+    {% if is_valid %}CHAIN VALID{% else %}CHAIN COMPROMISED{% endif %}
+  </span>
+</div>
+
+<div class="glass card" style="margin-bottom:1.5rem">
+  <p style="color:{% if is_valid %}#34d399{% else %}#f87171{% endif %};font-size:.9rem">{{ msg }}</p>
+</div>
+
+<div class="glass" style="border-radius:.875rem;overflow:hidden">
+  <div style="padding:.8rem 1rem;border-bottom:1px solid rgba(59,130,246,.1)">
+    <p class="section-title" style="margin:0">Recent Blocks (last 50, newest first)</p>
+  </div>
+  {% for block in blocks %}
+  <div style="padding:1rem;border-bottom:1px solid rgba(59,130,246,.05)">
+
+    <div style="display:flex;align-items:center;gap:.75rem;margin-bottom:.6rem;flex-wrap:wrap">
+      <span class="mono" style="font-size:.8rem;color:#60a5fa;font-weight:700;
+                                  background:rgba(37,99,235,.12);padding:.2rem .65rem;
+                                  border-radius:.35rem;border:1px solid rgba(59,130,246,.2)">
+        Block #{{ block.index }}
+      </span>
+      <span class="badge
+        {% if block.event_type == 'REGISTERED' %}bg
+        {% elif block.event_type == 'TRANSFERRED' %}bs
+        {% elif block.event_type == 'FLAGGED' %}bf
+        {% else %}bg{% endif %}">
+        {{ block.event_type }}
+      </span>
+      <span style="margin-left:auto;color:#334155;font-size:.72rem">{{ block.created_at|date:"M d, Y H:i" }}</span>
+    </div>
+
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));
+                gap:.5rem .75rem;margin-bottom:.6rem">
+      <div>
+        <p style="color:#334155;font-size:.65rem;text-transform:uppercase;letter-spacing:.05em">Serial</p>
+        <p class="mono" style="color:#94a3b8;font-size:.72rem">{{ block.product_unit_serial }}</p>
+      </div>
+      <div>
+        <p style="color:#334155;font-size:.65rem;text-transform:uppercase;letter-spacing:.05em">Actor</p>
+        <p style="color:#94a3b8;font-size:.78rem">
+          {{ block.actor_username }} <span style="color:#475569">({{ block.actor_role }})</span>
+        </p>
+      </div>
+      <div>
+        <p style="color:#334155;font-size:.65rem;text-transform:uppercase;letter-spacing:.05em">Nonce (PoW)</p>
+        <p class="mono" style="color:#64748b;font-size:.72rem">{{ block.nonce }}</p>
+      </div>
+    </div>
+
+    <div style="margin-bottom:.3rem">
+      <p style="color:#334155;font-size:.65rem;margin-bottom:.2rem;text-transform:uppercase;letter-spacing:.05em">Hash</p>
+      <p class="hash" style="color:#1d4ed8">{{ block.block_hash }}</p>
+    </div>
+    <div>
+      <p style="color:#334155;font-size:.65rem;margin-bottom:.2rem;text-transform:uppercase;letter-spacing:.05em">Prev Hash</p>
+      <p class="hash" style="color:#1e293b">{{ block.previous_hash }}</p>
+    </div>
+
+  </div>
+  {% empty %}
+  <p style="padding:3rem;text-align:center;color:#334155">No blocks yet. Generate some product units first.</p>
+  {% endfor %}
+</div>
+
+{% endblock %}
