@@ -99,3 +99,5 @@ TWILIO_PHONE_NUMBER          = os.getenv("TWILIO_PHONE_NUMBER", "")
 IPINFO_TOKEN                 = os.getenv("IPINFO_TOKEN", "")
 SUSPICIOUS_SCAN_COUNT        = int(os.getenv("SUSPICIOUS_SCAN_COUNT", 5))
 SUSPICIOUS_SCAN_WINDOW_MINUTES = int(os.getenv("SUSPICIOUS_SCAN_WINDOW_MINUTES", 60))
+
+AUTH_USER_MODEL = 'accounts.User'

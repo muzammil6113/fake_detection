@@ -1,0 +1,90 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+<h1>Welcome, {{ user.company_name|default:user.username }}</h1>
+
+<div class="dashboard-grid">
+
+  <!-- Add Product Model -->
+  <a href="{% url 'products:create_product_model' %}" class="action-card">
+    <span class="icon">＋</span>
+    <strong>Add product model</strong>
+    <p>Register a new product line</p>
+  </a>
+
+  <!-- Products Dashboard -->
+  <a href="{% url 'products:dashboard' %}" class="action-card">
+    <span class="icon">📦</span>
+    <strong>View product units</strong>
+    <p>Browse serialised units and QR codes</p>
+  </a>
+
+  <!-- Blockchain Status -->
+  <a href="{% url 'products:chain_status' %}" class="action-card">
+    <span class="icon">⛓️</span>
+    <strong>Blockchain status</strong>
+    <p>View blockchain integrity and recent blocks</p>
+  </a>
+
+</div>
+
+<h2>Recent Units</h2>
+
+<table class="data-table">
+  <thead>
+    <tr>
+      <th>Serial</th>
+      <th>Model</th>
+      <th>Status</th>
+      <th>Created</th>
+      <th>Action</th>
+    </tr>
+  </thead>
+
+  <tbody>
+
+    {% for unit in units %}
+    <tr>
+
+      <td>
+        <code>{{ unit.serial_number }}</code>
+      </td>
+
+      <!-- FIXED: unit.product.name -> unit.model.name -->
+      <td>
+        {{ unit.model.name }}
+      </td>
+
+      <td>
+        <span class="badge badge-{{ unit.status|lower }}">
+          {{ unit.status }}
+        </span>
+      </td>
+
+      <td>
+        {{ unit.created_at|date:"d M Y" }}
+      </td>
+
+      <td>
+        <a href="{% url 'products:unit_detail' unit.serial_number %}">
+          View
+        </a>
+      </td>
+
+    </tr>
+
+    {% empty %}
+
+    <tr>
+      <td colspan="5">
+        No units yet. Add a product model to get started.
+      </td>
+    </tr>
+
+    {% endfor %}
+
+  </tbody>
+</table>
+
+{% endblock %}

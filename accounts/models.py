@@ -16,15 +16,14 @@ class User(AbstractUser):
     ROLE_CUSTOMER = "CUSTOMER"
 
     ROLE_CHOICES = [
-        (ROLE_MANUFACTURER, "Manufacturer"),
-        (ROLE_DISTRIBUTOR, "Distributor"),
-        (ROLE_CUSTOMER, "Customer"),
+        ('MANUFACTURER', 'Manufacturer'),
+        ('DISTRIBUTOR', 'Distributor'),
+        ('CUSTOMER', 'Customer'),
     ]
-
-    role = models.CharField(max_length=20, choices=ROLE_CHOICES, default=ROLE_CUSTOMER)
-    company = models.CharField(max_length=200, blank=True, default="")
-    phone = models.CharField(max_length=20, blank=True, default="")
-
+    role = models.CharField(max_length=20, choices=ROLE_CHOICES, default='CUSTOMER')
+    company_name = models.CharField(max_length=200, blank=True)
+    phone = models.CharField(max_length=20, blank=True)
+    
     def is_manufacturer(self) -> bool:
         return self.role == self.ROLE_MANUFACTURER
 

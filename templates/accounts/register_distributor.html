@@ -1,0 +1,131 @@
+{% extends 'base.html' %}
+{% block title %}Distributor Registration — BlockVerify{% endblock %}
+
+{% block extra_head %}
+<style>
+  .reg-wrap{max-width:480px;margin:40px auto;padding:0 16px}
+  .reg-card{background:rgba(13,20,40,.85);border:1px solid rgba(5,150,105,.25);
+    border-top:3px solid #059669;border-radius:16px;padding:36px 32px}
+  .reg-icon{width:52px;height:52px;border-radius:14px;background:rgba(5,150,105,.18);
+    display:flex;align-items:center;justify-content:center;font-size:26px;margin-bottom:20px}
+  .reg-card h1{font-size:22px;font-weight:700;color:#f1f5f9;margin:0 0 6px}
+  .reg-card .sub{font-size:13px;color:#64748b;margin:0 0 28px;line-height:1.5}
+  .field{margin-bottom:18px}
+  .field label{display:block;font-size:12px;font-weight:600;color:#94a3b8;
+    text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px}
+  .field input{background:#060b14;border:1px solid rgba(59,130,246,.2);border-radius:8px;
+    padding:10px 14px;color:#e2e8f0;font-size:14px;outline:none;
+    transition:border-color .2s;width:100%}
+  .field input:focus{border-color:#059669;box-shadow:0 0 0 3px rgba(5,150,105,.12)}
+  .field input:hover{border-color:rgba(5,150,105,.4)}
+  .field-help{font-size:11px;color:#475569;margin-top:5px;line-height:1.4}
+  .field-error{font-size:11px;color:#f87171;margin-top:5px}
+  .field ul{list-style:none;padding:0;margin:4px 0 0}
+  .field ul li{font-size:11px;color:#f87171;margin-bottom:2px}
+  .reg-divider{height:1px;background:rgba(5,150,105,.1);margin:8px 0 20px}
+  .reg-btn{display:block;width:100%;padding:12px;border-radius:9px;border:none;
+    background:#059669;color:#fff;font-size:14px;font-weight:600;
+    cursor:pointer;transition:background .2s,transform .1s;text-align:center}
+  .reg-btn:hover{background:#047857}
+  .reg-btn:active{transform:scale(.98)}
+  .reg-back{text-align:center;margin-top:18px;font-size:13px;color:#475569}
+  .reg-back a{color:#60a5fa;text-decoration:none;font-weight:500}
+  .reg-back a:hover{text-decoration:underline}
+  .pw-rules{background:rgba(5,150,105,.08);border:1px solid rgba(5,150,105,.2);
+    border-radius:8px;padding:10px 14px;margin-bottom:18px}
+  .pw-rules p{font-size:11px;color:#059669;font-weight:600;margin:0 0 6px}
+  .pw-rules ul{list-style:none;padding:0;margin:0}
+  .pw-rules ul li{font-size:11px;color:#64748b;padding:1px 0;
+    display:flex;align-items:center;gap:6px}
+  .pw-rules ul li::before{content:'·';color:#059669;font-weight:700}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="reg-wrap">
+  <div class="reg-card">
+    <div class="reg-icon">🚚</div>
+    <h1>Distributor registration</h1>
+    <p class="sub">Accept shipments, transfer products, and maintain your chain-of-custody log.</p>
+
+    <form method="post" novalidate>
+      {% csrf_token %}
+
+      <div class="field">
+        <label for="{{ form.username.id_for_label }}">Username</label>
+        {{ form.username }}
+        {% if form.username.errors %}
+          <div class="field-error">{% for e in form.username.errors %}{{ e }}{% endfor %}</div>
+        {% else %}
+          <div class="field-help">Letters, digits and @/./+/-/_ only. Max 150 characters.</div>
+        {% endif %}
+      </div>
+
+      <div class="field">
+        <label for="{{ form.email.id_for_label }}">Email address</label>
+        {{ form.email }}
+        {% if form.email.errors %}
+          <div class="field-error">{% for e in form.email.errors %}{{ e }}{% endfor %}</div>
+        {% endif %}
+      </div>
+
+      <div class="field">
+        <label for="{{ form.company_name.id_for_label }}">Company name</label>
+        {{ form.company_name }}
+        {% if form.company_name.errors %}
+          <div class="field-error">{% for e in form.company_name.errors %}{{ e }}{% endfor %}</div>
+        {% endif %}
+      </div>
+
+      <div class="field">
+        <label for="{{ form.phone.id_for_label }}">Phone number</label>
+        {{ form.phone }}
+        {% if form.phone.errors %}
+          <div class="field-error">{% for e in form.phone.errors %}{{ e }}{% endfor %}</div>
+        {% endif %}
+      </div>
+
+      <div class="reg-divider"></div>
+
+      <div class="pw-rules">
+        <p>Password requirements</p>
+        <ul>
+          <li>At least 8 characters long</li>
+          <li>Cannot be entirely numeric</li>
+          <li>Cannot be too similar to your username</li>
+        </ul>
+      </div>
+
+      <div class="field">
+        <label for="{{ form.password1.id_for_label }}">Password</label>
+        {{ form.password1 }}
+        {% if form.password1.errors %}
+          <div class="field-error">{% for e in form.password1.errors %}{{ e }}{% endfor %}</div>
+        {% endif %}
+      </div>
+
+      <div class="field">
+        <label for="{{ form.password2.id_for_label }}">Confirm password</label>
+        {{ form.password2 }}
+        {% if form.password2.errors %}
+          <div class="field-error">{% for e in form.password2.errors %}{{ e }}{% endfor %}</div>
+        {% endif %}
+      </div>
+
+      <button type="submit" class="reg-btn">Create distributor account</button>
+    </form>
+  </div>
+
+  <div class="reg-back">
+    <a href="{% url 'landing' %}">← Back to role selection</a>
+  </div>
+</div>
+
+{% block extra_js %}
+<script>
+  document.querySelectorAll('.field input').forEach(inp => {
+    inp.classList.add('inp');
+  });
+</script>
+{% endblock %}
+{% endblock %}

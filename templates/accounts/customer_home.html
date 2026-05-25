@@ -1,0 +1,248 @@
+{% extends "base.html" %}
+{% block title %}Customer Dashboard — BlockVerify{% endblock %}
+
+{% block content %}
+
+<!-- Header -->
+<div style="display:flex;
+            align-items:flex-start;
+            justify-content:space-between;
+            flex-wrap:wrap;
+            gap:1rem;
+            margin-bottom:2rem">
+
+  <div>
+
+    <h1 style="font-size:1.75rem;
+               font-weight:700;
+               color:#f1f5f9">
+
+      Customer Dashboard
+
+    </h1>
+
+    <p style="color:#64748b;
+              font-size:.85rem;
+              margin-top:.25rem">
+
+      {{ user.username }}
+
+      <span style="color:#3b82f6">
+        · {{ user.get_role_display }}
+      </span>
+
+    </p>
+
+  </div>
+
+</div>
+
+<!-- Quick Actions -->
+<div style="display:grid;
+            grid-template-columns:repeat(3,1fr);
+            gap:1rem;
+            margin-bottom:2rem">
+
+  <!-- Verify -->
+  <a href="{% url 'products:home' %}"
+     class="glass card hover-card"
+     style="text-decoration:none">
+
+      <div style="font-size:2rem;margin-bottom:.75rem">
+        📷
+      </div>
+
+      <h3 style="font-size:1rem;
+                 font-weight:600;
+                 color:#f1f5f9;
+                 margin-bottom:.35rem">
+
+        Scan QR Code
+
+      </h3>
+
+      <p style="font-size:.8rem;
+                color:#64748b">
+
+        Verify a product using its QR code
+
+      </p>
+
+  </a>
+
+  <!-- Blockchain -->
+  <a href="{% url 'products:chain_status' %}"
+     class="glass card hover-card"
+     style="text-decoration:none">
+
+      <div style="font-size:2rem;margin-bottom:.75rem">
+        ⛓️
+      </div>
+
+      <h3 style="font-size:1rem;
+                 font-weight:600;
+                 color:#f1f5f9;
+                 margin-bottom:.35rem">
+
+        Blockchain Status
+
+      </h3>
+
+      <p style="font-size:.8rem;
+                color:#64748b">
+
+        View blockchain verification status
+
+      </p>
+
+  </a>
+
+  <!-- Dashboard -->
+  <a href="{% url 'products:dashboard' %}"
+     class="glass card hover-card"
+     style="text-decoration:none">
+
+      <div style="font-size:2rem;margin-bottom:.75rem">
+        📊
+      </div>
+
+      <h3 style="font-size:1rem;
+                 font-weight:600;
+                 color:#f1f5f9;
+                 margin-bottom:.35rem">
+
+        Dashboard
+
+      </h3>
+
+      <p style="font-size:.8rem;
+                color:#64748b">
+
+        View recent verification activity
+
+      </p>
+
+  </a>
+
+</div>
+
+<!-- Scan History -->
+<p class="section-title">Your Scan History</p>
+
+<div class="glass"
+     style="border-radius:.875rem;
+            overflow:hidden">
+
+  <table>
+
+    <thead>
+
+      <tr style="border-bottom:1px solid rgba(59,130,246,.12)">
+
+        <th style="color:#475569;
+                   font-size:.72rem;
+                   font-weight:600">
+
+          Product
+
+        </th>
+
+        <th style="color:#475569;
+                   font-size:.72rem;
+                   font-weight:600">
+
+          Result
+
+        </th>
+
+        <th style="color:#475569;
+                   font-size:.72rem;
+                   font-weight:600">
+
+          Scanned
+
+        </th>
+
+      </tr>
+
+    </thead>
+
+    <tbody>
+
+      {% for scan in scans %}
+
+      <tr>
+
+        <td style="font-size:.82rem;
+                   color:#cbd5e1">
+
+          {% if scan.unit %}
+            {{ scan.unit.serial_number }}
+          {% else %}
+            Unknown
+          {% endif %}
+
+        </td>
+
+        <td>
+
+          <span class="badge
+            {% if scan.result == 'GENUINE' %}
+              bg
+            {% elif scan.result == 'SUSPICIOUS' %}
+              bs
+            {% else %}
+              bf
+            {% endif %}
+          ">
+
+            {{ scan.result }}
+
+          </span>
+
+        </td>
+
+        <td style="font-size:.75rem;
+                   color:#64748b">
+
+          {{ scan.scanned_at|timesince }} ago
+
+        </td>
+
+      </tr>
+
+      {% empty %}
+
+      <tr>
+
+        <td colspan="3"
+            style="text-align:center;
+                   color:#334155;
+                   padding:2rem">
+
+          No scans yet. Scan a product to get started.
+
+        </td>
+
+      </tr>
+
+      {% endfor %}
+
+    </tbody>
+
+  </table>
+
+</div>
+
+<style>
+.hover-card:hover{
+  border-color:rgba(59,130,246,.4)!important;
+  transform:translateY(-2px);
+}
+
+.hover-card{
+  transition:.2s;
+}
+</style>
+
+{% endblock %}

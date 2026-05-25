@@ -5,8 +5,8 @@ from .models import User
 
 @admin.register(User)
 class CustomUserAdmin(UserAdmin):
-    list_display = ("username", "email", "role", "company", "phone", "is_staff")
+    list_display = ("username", "email", "role", "company_name", "phone", "is_staff")
     list_filter  = ("role", "is_staff")
     fieldsets    = UserAdmin.fieldsets + (
-        ("BlockVerify Profile", {"fields": ("role", "company", "phone")}),
+        ("BlockVerify Profile", {"fields": ("role", "company_name", "phone")}),
     )

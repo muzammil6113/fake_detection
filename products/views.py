@@ -240,3 +240,5 @@ def api_scan_stats(request):
         "suspicious": qs.filter(result="SUSPICIOUS").count(),
         "fake":       qs.filter(result="FAKE").count(),
     })
+
+
