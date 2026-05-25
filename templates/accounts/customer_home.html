@@ -31,6 +31,7 @@
         · {{ user.get_role_display }}
       </span>
 
+
     </p>
 
   </div>
@@ -44,83 +45,59 @@
             margin-bottom:2rem">
 
   <!-- Verify -->
-  <a href="{% url 'products:home' %}"
-     class="glass card hover-card"
-     style="text-decoration:none">
-
-      <div style="font-size:2rem;margin-bottom:.75rem">
-        📷
-      </div>
-
-      <h3 style="font-size:1rem;
-                 font-weight:600;
-                 color:#f1f5f9;
-                 margin-bottom:.35rem">
-
-        Scan QR Code
-
-      </h3>
-
-      <p style="font-size:.8rem;
-                color:#64748b">
-
-        Verify a product using its QR code
-
-      </p>
-
+  <a href="{% url 'blockchain:scan' %}" class="action-card highlight">
+    <span class="icon">📷</span>
+    <strong>Scan QR code</strong>
+    <p>Point camera at the product's QR code</p>
   </a>
 
   <!-- Blockchain -->
-  <a href="{% url 'products:chain_status' %}"
-     class="glass card hover-card"
-     style="text-decoration:none">
+  <a href="{% url 'products:chain_status' %}" class="glass card hover-card" style="text-decoration:none">
 
-      <div style="font-size:2rem;margin-bottom:.75rem">
-        ⛓️
-      </div>
+    <div style="font-size:2rem;margin-bottom:.75rem">
+      ⛓️
+    </div>
 
-      <h3 style="font-size:1rem;
+    <h3 style="font-size:1rem;
                  font-weight:600;
                  color:#f1f5f9;
                  margin-bottom:.35rem">
 
-        Blockchain Status
+      Blockchain Status
 
-      </h3>
+    </h3>
 
-      <p style="font-size:.8rem;
+    <p style="font-size:.8rem;
                 color:#64748b">
 
-        View blockchain verification status
+      View blockchain verification status
 
-      </p>
+    </p>
 
   </a>
 
   <!-- Dashboard -->
-  <a href="{% url 'products:dashboard' %}"
-     class="glass card hover-card"
-     style="text-decoration:none">
+  <a href="{% url 'products:dashboard' %}" class="glass card hover-card" style="text-decoration:none">
 
-      <div style="font-size:2rem;margin-bottom:.75rem">
-        📊
-      </div>
+    <div style="font-size:2rem;margin-bottom:.75rem">
+      📊
+    </div>
 
-      <h3 style="font-size:1rem;
+    <h3 style="font-size:1rem;
                  font-weight:600;
                  color:#f1f5f9;
                  margin-bottom:.35rem">
 
-        Dashboard
+      Dashboard
 
-      </h3>
+    </h3>
 
-      <p style="font-size:.8rem;
+    <p style="font-size:.8rem;
                 color:#64748b">
 
-        View recent verification activity
+      View recent verification activity
 
-      </p>
+    </p>
 
   </a>
 
@@ -129,8 +106,7 @@
 <!-- Scan History -->
 <p class="section-title">Your Scan History</p>
 
-<div class="glass"
-     style="border-radius:.875rem;
+<div class="glass" style="border-radius:.875rem;
             overflow:hidden">
 
   <table>
@@ -177,9 +153,9 @@
                    color:#cbd5e1">
 
           {% if scan.unit %}
-            {{ scan.unit.serial_number }}
+          {{ scan.unit.serial_number }}
           {% else %}
-            Unknown
+          Unknown
           {% endif %}
 
         </td>
@@ -215,8 +191,7 @@
 
       <tr>
 
-        <td colspan="3"
-            style="text-align:center;
+        <td colspan="3" style="text-align:center;
                    color:#334155;
                    padding:2rem">
 
@@ -235,14 +210,14 @@
 </div>
 
 <style>
-.hover-card:hover{
-  border-color:rgba(59,130,246,.4)!important;
-  transform:translateY(-2px);
-}
+  .hover-card:hover {
+    border-color: rgba(59, 130, 246, .4) !important;
+    transform: translateY(-2px);
+  }
 
-.hover-card{
-  transition:.2s;
-}
+  .hover-card {
+    transition: .2s;
+  }
 </style>
 
 {% endblock %}

@@ -1,84 +1,260 @@
-{% extends 'base.html' %}
+{% extends "base.html" %}
+{% block title %}Distributor Dashboard — BlockVerify{% endblock %}
 
 {% block content %}
 
-<h1>Distributor Dashboard</h1>
+<!-- Header -->
+<div style="display:flex;
+            align-items:flex-start;
+            justify-content:space-between;
+            flex-wrap:wrap;
+            gap:1rem;
+            margin-bottom:2rem">
 
-<div class="dashboard-grid">
+  <div>
 
-  <!-- View Assigned Units -->
-  <a href="{% url 'products:dashboard' %}" class="action-card">
-    <span class="icon">📦</span>
-    <strong>My Units</strong>
-    <p>View products currently assigned to you</p>
+    <h1 style="font-size:1.75rem;
+               font-weight:700;
+               color:#f1f5f9">
+
+      Distributor Dashboard
+
+    </h1>
+
+    <p style="color:#64748b;
+              font-size:.85rem;
+              margin-top:.25rem">
+
+      {{ user.username }}
+
+      <span style="color:#3b82f6">
+        · {{ user.get_role_display }}
+      </span>
+
+    </p>
+
+  </div>
+
+</div>
+
+<!-- Quick Actions -->
+<div style="display:grid;
+            grid-template-columns:repeat(3,1fr);
+            gap:1rem;
+            margin-bottom:2rem">
+
+  <!-- Units -->
+  <a href="{% url 'products:dashboard' %}"
+     class="glass card hover-card"
+     style="text-decoration:none">
+
+      <div style="font-size:2rem;margin-bottom:.75rem">
+        📦
+      </div>
+
+      <h3 style="font-size:1rem;
+                 font-weight:600;
+                 color:#f1f5f9;
+                 margin-bottom:.35rem">
+
+        My Units
+
+      </h3>
+
+      <p style="font-size:.8rem;
+                color:#64748b">
+
+        View products currently assigned to you
+
+      </p>
+
   </a>
 
-  <!-- Blockchain Status -->
-  <a href="{% url 'products:chain_status' %}" class="action-card">
-    <span class="icon">⛓️</span>
-    <strong>Blockchain Status</strong>
-    <p>Check blockchain integrity and transfers</p>
+  <!-- Blockchain -->
+  <a href="{% url 'products:chain_status' %}"
+     class="glass card hover-card"
+     style="text-decoration:none">
+
+      <div style="font-size:2rem;margin-bottom:.75rem">
+        ⛓️
+      </div>
+
+      <h3 style="font-size:1rem;
+                 font-weight:600;
+                 color:#f1f5f9;
+                 margin-bottom:.35rem">
+
+        Blockchain Status
+
+      </h3>
+
+      <p style="font-size:.8rem;
+                color:#64748b">
+
+        Check blockchain integrity and transfers
+
+      </p>
+
   </a>
 
-  <!-- Product Verification -->
-  <a href="{% url 'products:home' %}" class="action-card">
-    <span class="icon">🔍</span>
-    <strong>Verify Product</strong>
-    <p>Verify authenticity using QR or product hash</p>
+  <!-- Verify -->
+  <a href="{% url 'products:home' %}"
+     class="glass card hover-card"
+     style="text-decoration:none">
+
+      <div style="font-size:2rem;margin-bottom:.75rem">
+        🔍
+      </div>
+
+      <h3 style="font-size:1rem;
+                 font-weight:600;
+                 color:#f1f5f9;
+                 margin-bottom:.35rem">
+
+        Verify Product
+
+      </h3>
+
+      <p style="font-size:.8rem;
+                color:#64748b">
+
+        Verify authenticity using QR or product hash
+
+      </p>
+
   </a>
 
 </div>
 
-<h2>Your Assigned Units</h2>
+<!-- Assigned Units -->
+<p class="section-title">Your Assigned Units</p>
 
-<table class="data-table">
+<div class="glass"
+     style="border-radius:.875rem;
+            overflow:hidden">
 
-  <thead>
-    <tr>
-      <th>Serial</th>
-      <th>Model</th>
-      <th>Status</th>
-      <th>Updated</th>
-    </tr>
-  </thead>
+  <table>
 
-  <tbody>
+    <thead>
 
-    {% for unit in units %}
-    <tr>
+      <tr style="border-bottom:1px solid rgba(59,130,246,.12)">
 
-      <td>
-        <code>{{ unit.serial_number }}</code>
-      </td>
+        <th style="color:#475569;
+                   font-size:.72rem;
+                   font-weight:600">
 
-      <td>
-        {{ unit.model.name }}
-      </td>
+          Serial
 
-      <td>
-        <span class="badge badge-{{ unit.status|lower }}">
-          {{ unit.status }}
-        </span>
-      </td>
+        </th>
 
-      <td>
-        {{ unit.updated_at|date:"d M Y H:i" }}
-      </td>
+        <th style="color:#475569;
+                   font-size:.72rem;
+                   font-weight:600">
 
-    </tr>
+          Product
 
-    {% empty %}
+        </th>
 
-    <tr>
-      <td colspan="4">
-        No assigned units yet.
-      </td>
-    </tr>
+        <th style="color:#475569;
+                   font-size:.72rem;
+                   font-weight:600">
 
-    {% endfor %}
+          Status
 
-  </tbody>
+        </th>
 
-</table>
+        <th style="color:#475569;
+                   font-size:.72rem;
+                   font-weight:600">
+
+          Updated
+
+        </th>
+
+      </tr>
+
+    </thead>
+
+    <tbody>
+
+      {% for unit in units %}
+
+      <tr>
+
+        <td class="mono"
+            style="font-size:.72rem;
+                   color:#94a3b8">
+
+          {{ unit.serial_number }}
+
+        </td>
+
+        <td style="font-size:.85rem;
+                   color:#cbd5e1">
+
+          {{ unit.model.name }}
+
+        </td>
+
+        <td>
+
+          <span class="badge
+            {% if unit.status == 'GENUINE' %}
+              bg
+            {% elif unit.status == 'SUSPICIOUS' %}
+              bs
+            {% else %}
+              bf
+            {% endif %}
+          ">
+
+            {{ unit.status }}
+
+          </span>
+
+        </td>
+
+        <td style="font-size:.75rem;
+                   color:#64748b">
+
+          {{ unit.updated_at|timesince }} ago
+
+        </td>
+
+      </tr>
+
+      {% empty %}
+
+      <tr>
+
+        <td colspan="4"
+            style="text-align:center;
+                   color:#334155;
+                   padding:2rem">
+
+          No assigned units yet.
+
+        </td>
+
+      </tr>
+
+      {% endfor %}
+
+    </tbody>
+
+  </table>
+
+</div>
+
+<style>
+.hover-card:hover{
+  border-color:rgba(59,130,246,.4)!important;
+  transform:translateY(-2px);
+}
+
+.hover-card{
+  transition:.2s;
+}
+</style>
 
 {% endblock %}

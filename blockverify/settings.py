@@ -87,7 +87,8 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 AUTH_USER_MODEL = "accounts.User"
 LOGIN_URL = "/accounts/login/"
-LOGIN_REDIRECT_URL = "/dashboard/"
+LOGIN_REDIRECT_URL = '/accounts/home/'
+# LOGIN_REDIRECT_URL = "/dashboard/"
 LOGOUT_REDIRECT_URL = "/"
 
 # API keys
@@ -97,7 +98,10 @@ TWILIO_ACCOUNT_SID           = os.getenv("TWILIO_ACCOUNT_SID", "")
 TWILIO_AUTH_TOKEN            = os.getenv("TWILIO_AUTH_TOKEN", "")
 TWILIO_PHONE_NUMBER          = os.getenv("TWILIO_PHONE_NUMBER", "")
 IPINFO_TOKEN                 = os.getenv("IPINFO_TOKEN", "")
-SUSPICIOUS_SCAN_COUNT        = int(os.getenv("SUSPICIOUS_SCAN_COUNT", 5))
-SUSPICIOUS_SCAN_WINDOW_MINUTES = int(os.getenv("SUSPICIOUS_SCAN_WINDOW_MINUTES", 60))
+# SUSPICIOUS_SCAN_COUNT        = int(os.getenv("SUSPICIOUS_SCAN_COUNT", 5))
+# SUSPICIOUS_SCAN_WINDOW_MINUTES = int(os.getenv("SUSPICIOUS_SCAN_WINDOW_MINUTES", 60))
 
 AUTH_USER_MODEL = 'accounts.User'
+
+SUSPICIOUS_SCAN_COUNT          = 3    # scans within the window = suspicious
+SUSPICIOUS_SCAN_WINDOW_MINUTES = 60   # rolling window in minutes
