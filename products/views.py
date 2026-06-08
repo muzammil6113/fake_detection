@@ -17,6 +17,7 @@ from .alert_utils import alert_suspicious_scan
 from blockchain.engine import generate_product_hash, generate_unit_serial
 from blockchain.service import add_block, validate_chain, get_unit_history
 from accounts.models import User
+from blockchain.models import ScanLog
 
 
 # ── Public home ──────────────────────────────────────────────────────────────
@@ -47,22 +48,71 @@ def home(request):
 
 # ── Dashboard ─────────────────────────────────────────────────────────────────
 
+
 @login_required
 def dashboard(request):
     user = request.user
-    ctx  = {"user": user}
-    if user.is_manufacturer():
-        ctx["models"]       = ProductModel.objects.filter(manufacturer=user).order_by("-created_at")
-        ctx["total_units"]  = ProductUnit.objects.filter(model__manufacturer=user).count()
-        ctx["flagged"]      = ProductUnit.objects.filter(model__manufacturer=user, status="FLAGGED").count()
-        ctx["recent_scans"] = ScanLog.objects.filter(
-            unit__model__manufacturer=user).order_by("-scanned_at")[:10]
-    elif user.is_distributor():
-        ctx["owned_units"] = ProductUnit.objects.filter(current_owner=user).order_by("-updated_at")
-    else:
-        ctx["scan_history"] = ScanLog.objects.filter(scanner_user=user).order_by("-scanned_at")[:20]
-    return render(request, "dashboard.html", ctx)
+    ctx = {"user": user}
 
+    if user.is_manufacturer():
+
+        ctx["models"] = ProductModel.objects.filter(
+            manufacturer=user
+        ).order_by("-created_at")
+
+        ctx["units"] = ProductUnit.objects.filter(
+            model__manufacturer=user
+        ).order_by("-created_at")[:20]
+
+        ctx["total_units"] = ProductUnit.objects.filter(
+            model__manufacturer=user
+        ).count()
+
+        ctx["flagged"] = ProductUnit.objects.filter(
+            model__manufacturer=user,
+            status="FLAGGED"
+        ).count()
+
+        serials = ProductUnit.objects.filter(
+            model__manufacturer=user
+        ).values_list(
+            "serial_number",
+            flat=True
+        )
+
+        ctx["recent_scans"] = ScanLog.objects.filter(
+            product_unit_serial__in=serials
+        ).order_by("-scanned_at")[:20]
+
+        return render(request, "dashboard.html", ctx)
+
+    elif user.is_distributor():
+
+        units = ProductUnit.objects.filter(
+            current_owner=user
+        ).order_by("-updated_at")
+
+        return render(
+            request,
+            "accounts/distributor_home.html",
+            {
+                "units": units
+            }
+        )
+
+    else:
+
+        scans = ScanLog.objects.filter(
+            user=user
+        ).order_by("-scanned_at")[:20]
+
+        return render(
+            request,
+            "accounts/customer_home.html",
+            {
+                "scans": scans
+            }
+        )
 
 # ── Product Model ─────────────────────────────────────────────────────────────
 
@@ -144,23 +194,26 @@ def unit_detail(request, serial):
     })
 
 
+
 @login_required
 @require_POST
 def transfer_unit(request, serial):
     unit = get_object_or_404(ProductUnit, serial_number=serial, current_owner=request.user)
     form = TransferForm(request.POST)
+
     if not form.is_valid():
         messages.error(request, "Invalid transfer data.")
-        return redirect("unit_detail", serial=serial)
+        return redirect("products:unit_detail", serial=serial)
+
     try:
         to_user = User.objects.get(username=form.cleaned_data["to_username"])
     except User.DoesNotExist:
         messages.error(request, "User not found.")
-        return redirect("unit_detail", serial=serial)
+        return redirect("products:unit_detail", serial=serial)
 
-    old_owner          = unit.current_owner
+    old_owner = unit.current_owner
     unit.current_owner = to_user
-    unit.status        = "IN_TRANSIT" if to_user.is_distributor() else "WITH_SELLER"
+    unit.status = "IN_TRANSIT" if to_user.is_distributor() else "WITH_SELLER"
     unit.save()
 
     block = add_block(
@@ -168,51 +221,93 @@ def transfer_unit(request, serial):
         product_unit_serial=unit.serial_number,
         actor_username=request.user.username,
         actor_role=request.user.role,
-        extra_data={"from": old_owner.username if old_owner else "",
-                    "to": to_user.username,
-                    "notes": form.cleaned_data.get("notes", "")},
+        extra_data={
+            "from": old_owner.username if old_owner else "",
+            "to": to_user.username,
+            "notes": form.cleaned_data.get("notes", ""),
+        },
     )
+
     TransferHistory.objects.create(
-        unit=unit, from_user=old_owner, to_user=to_user,
+        unit=unit,
+        from_user=old_owner,
+        to_user=to_user,
         notes=form.cleaned_data.get("notes", ""),
         block_hash=block.block_hash,
     )
+
     messages.success(request, f"Unit transferred to {to_user.username}.")
-    return redirect("unit_detail", serial=serial)
+    return redirect("products:unit_detail", serial=serial)
 
 
 # ── Verification — public ─────────────────────────────────────────────────────
 
 def verify_unit(request, product_hash):
-    result = verify(product_hash)
-    unit   = result.get("unit")
+    """
+    Public QR verification endpoint. Uses 3-check verification logic:
+    1. Hash exists in registry
+    2. Supply chain valid
+    3. No duplicate/cloning attack
+    
+    Returns GENUINE / SUSPICIOUS / FAKE result and logs the scan.
+    """
+    try:
+        result = verify(product_hash)
+        unit = result.get("unit")
+    except Exception as e:
+        # Verification failed - return error
+        return render(request, "products/verify.html", {
+            "result": {
+                "result": "ERROR",
+                "message": f"Verification failed: {str(e)}",
+                "color": "red",
+                "icon": "✗",
+                "checks": {},
+            },
+            "unit": None,
+            "scan": None,
+            "blockchain_history": [],
+            "product_hash": product_hash,
+        })
 
-    ip  = get_client_ip(request)
+    ip = get_client_ip(request)
     geo = get_location(ip)
 
-    scan = ScanLog.objects.create(
-        unit=unit,
-        product_hash_scanned=product_hash,
-        scanner_ip=ip or None,
-        scanner_user=request.user if request.user.is_authenticated else None,
-        geo_country=geo.get("country", ""),
-        geo_city=geo.get("city", ""),
-        geo_lat=geo.get("lat"),
-        geo_lon=geo.get("lon"),
-        result=result["result"],
-    )
+    # Log the scan attempt
+    scan = None
+    try:
+        scan = ScanLog.objects.create(
+            unit=unit,
+            product_hash_scanned=product_hash,
+            scanner_ip=ip or None,
+            scanner_user=request.user if request.user.is_authenticated else None,
+            geo_country=geo.get("country", ""),
+            geo_city=geo.get("city", ""),
+            geo_lat=geo.get("lat"),
+            geo_lon=geo.get("lon"),
+            result=result["result"],
+        )
+    except Exception as log_err:
+        # Log creation failed, but don't fail the verification response
+        pass
 
-    if unit and result["result"] in ("SUSPICIOUS", "FAKE"):
-        unit.status = "FLAGGED"
-        unit.save(update_fields=["status"])
-        alert_suspicious_scan(unit, scan, unit.model.manufacturer)
+    # Flag suspicious/fake products
+    try:
+        if unit and result["result"] in ("SUSPICIOUS", "FAKE"):
+            unit.status = "FLAGGED"
+            unit.save(update_fields=["status"])
+            if unit.model and unit.model.manufacturer:
+                alert_suspicious_scan(unit, scan, unit.model.manufacturer)
+    except Exception as flag_err:
+        # Flag/alert failed, but don't fail the response
+        pass
 
     return render(request, "products/verify.html", {
-        "result":             result,
-        "unit":               unit,
-        "scan":               scan,
+        "result": result,
+        "unit": unit,
+        "scan": scan,
         "blockchain_history": get_unit_history(unit.serial_number) if unit else [],
-        "product_hash":       product_hash,
+        "product_hash": product_hash,
     })
 
 

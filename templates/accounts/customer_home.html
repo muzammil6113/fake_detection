@@ -45,11 +45,32 @@
             margin-bottom:2rem">
 
   <!-- Verify -->
-  <a href="{% url 'blockchain:scan' %}" class="action-card highlight">
-    <span class="icon">📷</span>
-    <strong>Scan QR code</strong>
-    <p>Point camera at the product's QR code</p>
-  </a>
+  <!-- Verify -->
+<a href="{% url 'blockchain:scan' %}"
+   class="glass card hover-card"
+   style="text-decoration:none">
+
+  <div style="font-size:2rem;margin-bottom:.75rem">
+    📷
+  </div>
+
+  <h3 style="font-size:1rem;
+             font-weight:600;
+             color:#f1f5f9;
+             margin-bottom:.35rem">
+
+    Scan QR Code
+
+  </h3>
+
+  <p style="font-size:.8rem;
+            color:#64748b">
+
+    Point camera at the product's QR code
+
+  </p>
+
+</a>
 
   <!-- Blockchain -->
   <a href="{% url 'products:chain_status' %}" class="glass card hover-card" style="text-decoration:none">

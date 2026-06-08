@@ -11,7 +11,17 @@
 </div>
 
 <div class="glass card" style="margin-bottom:1.5rem">
-  <p style="color:{% if is_valid %}#34d399{% else %}#f87171{% endif %};font-size:.9rem">{{ msg }}</p>
+
+  {% if is_valid %}
+    <p style="color:#34d399;font-size:.9rem">
+      {{ msg }}
+    </p>
+  {% else %}
+    <p style="color:#f87171;font-size:.9rem">
+      {{ msg }}
+    </p>
+  {% endif %}
+
 </div>
 
 <div class="glass" style="border-radius:.875rem;overflow:hidden">

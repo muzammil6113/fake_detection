@@ -13,7 +13,7 @@
     </p>
   </div>
   {% if user.is_manufacturer %}
-    <a href="/products/new/" class="btn btn-blue">+ New Product Model</a>
+  <a href="/products/new/" class="btn btn-blue">+ New Product Model</a>
   {% endif %}
 </div>
 
@@ -34,14 +34,14 @@
     <p style="color:#64748b;font-size:.75rem;margin-bottom:.35rem">Flagged Units</p>
     <p style="font-size:1.75rem;font-weight:700;color:#f87171">{{ flagged }}</p>
   </div>
-  <div class="glass card" style="cursor:default">
-    <p style="color:#64748b;font-size:.75rem;margin-bottom:.35rem">Scans (24h)</p>
-    <p style="font-size:1.75rem;font-weight:700;color:#60a5fa" id="stat24">—</p>
+  <div class="glass card">
+    <p style="color:#64748b;font-size:.75rem;margin-bottom:.35rem">QR Generated</p>
+    <p style="font-size:1.75rem;font-weight:700;color:#fbbf24">{{ total_units }}</p>
   </div>
 </div>
 
 <!-- Live scan bar chart -->
-<div class="glass card" style="margin-bottom:2rem">
+<!-- <div class="glass card" style="margin-bottom:2rem">
   <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem">
     <p class="section-title" style="margin:0">Scan Results Overview</p>
     <div style="display:flex;gap:1rem;font-size:.75rem">
@@ -64,71 +64,371 @@
                                font-size:.65rem;color:#f87171;white-space:nowrap"></span>
     </div>
   </div>
+</div> -->
+
+<!-- Quick Actions -->
+<div style="display:grid;
+            grid-template-columns:repeat(3,1fr);
+            gap:1rem;
+            margin-bottom:2rem">
+
+  <a href="{% url 'products:create_product_model' %}" class="glass card hover-card" style="text-decoration:none">
+
+    <div style="font-size:2rem;margin-bottom:.75rem">
+      ➕
+    </div>
+
+    <h3 style="font-size:1rem;
+                 font-weight:600;
+                 color:#f1f5f9">
+
+      Add Product Model
+
+    </h3>
+
+    <p style="font-size:.8rem;
+                color:#64748b">
+
+      Register a new product line
+
+    </p>
+
+  </a>
+
+  <!-- <div onclick="showSection('products')" class="glass card hover-card" style="cursor:pointer">
+
+    <div style="font-size:2rem;margin-bottom:.75rem">
+      📦
+    </div>
+
+    <h3 style="font-size:1rem;
+                 font-weight:600;
+                 color:#f1f5f9">
+
+      Product Units
+
+    </h3>
+
+    <p style="font-size:.8rem;
+                color:#64748b">
+
+      Browse serialised units and QR codes
+
+    </p>
+
+  </div> -->
+
+  <a href="{% url 'products:chain_status' %}" class="glass card hover-card" style="text-decoration:none">
+
+    <div style="font-size:2rem;margin-bottom:.75rem">
+      ⛓️
+    </div>
+
+    <h3 style="font-size:1rem;
+                 font-weight:600;
+                 color:#f1f5f9">
+
+      Blockchain Status
+
+    </h3>
+
+    <p style="font-size:.8rem;
+                color:#64748b">
+
+      View blockchain integrity and recent blocks
+
+    </p>
+
+  </a>
+
 </div>
 
-<!-- Product Models grid -->
-<p class="section-title">Your Product Models</p>
-{% if models %}
-<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:1rem;margin-bottom:2.5rem">
-  {% for pm in models %}
-  <a href="/products/{{ pm.pk }}/"
-     style="text-decoration:none"
-     class="glass card hover-card">
-    {% if pm.image %}
-      <img src="{{ pm.image.url }}" style="width:100%;height:7rem;object-fit:cover;border-radius:.5rem;margin-bottom:.75rem"/>
-    {% else %}
-      <div style="width:100%;height:7rem;background:#0d1428;border-radius:.5rem;
-                  display:flex;align-items:center;justify-content:center;
-                  font-size:2.5rem;margin-bottom:.75rem">📦</div>
-    {% endif %}
-    <p class="mono" style="color:#3b82f6;font-size:.72rem;margin-bottom:.25rem">{{ pm.model_code }}</p>
-    <h3 style="font-weight:600;color:#f1f5f9;font-size:.95rem">{{ pm.name }}</h3>
-    <p style="color:#64748b;font-size:.78rem;margin-top:.25rem">{{ pm.brand }} · {{ pm.unit_count }} units</p>
-  </a>
-  {% endfor %}
+<div class="dashboard-tabs">
+
+  <button id="products-btn" class="tab-btn active" onclick="showSection('products')">
+    📦 My Products
+  </button>
+
+  <button id="units-btn" class="tab-btn" onclick="showSection('units')">
+    📋 Recent Units
+  </button>
+
+  <button id="scans-btn" class="tab-btn" onclick="showSection('scans')">
+    📱 Recent Scan Activity
+  </button>
+
 </div>
-{% else %}
-<div class="glass card" style="text-align:center;padding:3rem;margin-bottom:2.5rem">
-  <p style="font-size:2.5rem;margin-bottom:.75rem">📦</p>
-  <p style="color:#64748b">No product models yet.
-    <a href="/products/new/" style="color:#60a5fa">Create your first →</a>
-  </p>
+
+<!-- Product Models -->
+<div id="products-section">
+
+  <p class="section-title">Your Product Models</p>
+
+  {% if models %}
+
+  <div style="
+        display:grid;
+        grid-template-columns:repeat(auto-fill,minmax(340px,1fr));
+        gap:1.5rem;
+        margin-bottom:2rem;
+    ">
+
+    {% for pm in models %}
+
+    <a href="/products/{{ pm.pk }}/" class="glass card hover-card" style="
+              text-decoration:none;
+              padding:1rem;
+           ">
+
+      {% if pm.image %}
+      <img src="{{ pm.image.url }}" style="
+                    width:100%;
+                    height:220px;
+                    object-fit:cover;
+                    border-radius:12px;
+                    margin-bottom:1rem;">
+      {% else %}
+      <div style="
+                height:220px;
+                display:flex;
+                align-items:center;
+                justify-content:center;
+                background:#0f172a;
+                border-radius:12px;
+                margin-bottom:1rem;
+                font-size:4rem;">
+        📦
+      </div>
+      {% endif %}
+
+      <p style="
+                color:#3b82f6;
+                font-size:.75rem;
+                font-family:monospace;
+                margin-bottom:.35rem;">
+
+        {{ pm.model_code }}
+
+      </p>
+
+      <h3 style="
+                color:#f8fafc;
+                font-size:1.1rem;
+                font-weight:600;
+                margin-bottom:.25rem;">
+
+        {{ pm.name }}
+
+      </h3>
+
+      <p style="
+                color:#64748b;
+                font-size:.85rem;">
+
+        {{ pm.brand }}
+
+      </p>
+
+      <div style="
+                display:flex;
+                justify-content:space-between;
+                align-items:center;
+                margin-top:1rem;
+                padding-top:.75rem;
+                border-top:1px solid rgba(255,255,255,.08);">
+
+        <span style="
+                    color:#60a5fa;
+                    font-size:.85rem;">
+
+          {{ pm.unit_count }} Units
+
+        </span>
+
+        <span style="
+                    color:#94a3b8;
+                    font-size:.85rem;">
+
+          View →
+
+        </span>
+
+      </div>
+
+    </a>
+
+    {% endfor %}
+
+  </div>
+
+  {% else %}
+
+  <div class="glass card" style="
+            text-align:center;
+            padding:3rem;">
+
+    <div style="font-size:3rem;margin-bottom:1rem">
+      📦
+    </div>
+
+    <p style="color:#64748b">
+      No product models yet.
+    </p>
+
+  </div>
+
+  {% endif %}
+
 </div>
-{% endif %}
 
 <!-- Recent scans -->
-<p class="section-title">Recent Scan Activity</p>
-<div class="glass" style="border-radius:.875rem;overflow:hidden">
-  <table>
-    <thead>
-      <tr style="border-bottom:1px solid rgba(59,130,246,.12)">
-        <th style="color:#475569;font-size:.72rem;font-weight:600">Serial</th>
-        <th style="color:#475569;font-size:.72rem;font-weight:600">Location</th>
-        <th style="color:#475569;font-size:.72rem;font-weight:600">Result</th>
-        <th style="color:#475569;font-size:.72rem;font-weight:600">IP</th>
-        <th style="color:#475569;font-size:.72rem;font-weight:600">When</th>
-      </tr>
-    </thead>
-    <tbody>
-      {% for s in recent_scans %}
-      <tr>
-        <td class="mono" style="font-size:.72rem;color:#94a3b8">{{ s.unit.serial_number|default:"—" }}</td>
-        <td style="font-size:.78rem;color:#64748b">{{ s.geo_city|default:"—" }}, {{ s.geo_country|default:"—" }}</td>
-        <td>
-          <span class="badge {% if s.result == 'GENUINE' %}bg{% elif s.result == 'SUSPICIOUS' %}bs{% else %}bf{% endif %}">
-            {{ s.result }}
-          </span>
-        </td>
-        <td class="mono" style="font-size:.68rem;color:#475569">{{ s.scanner_ip|default:"—" }}</td>
-        <td style="font-size:.75rem;color:#475569">{{ s.scanned_at|timesince }} ago</td>
-      </tr>
-      {% empty %}
-      <tr><td colspan="5" style="text-align:center;color:#334155;padding:2rem">No scans yet.</td></tr>
-      {% endfor %}
-    </tbody>
-  </table>
+<div id="scans-section" style="display:none">
+  <p class="section-title">Recent Scan Activity</p>
+
+  <div class="glass" style="border-radius:.875rem;overflow:hidden">
+
+    <table>
+
+      <thead>
+        <tr style="border-bottom:1px solid rgba(59,130,246,.12)">
+          <th style="color:#475569;font-size:.72rem;font-weight:600">
+            Serial
+          </th>
+
+          <th style="color:#475569;font-size:.72rem;font-weight:600">
+            Product
+          </th>
+
+          <th style="color:#475569;font-size:.72rem;font-weight:600">
+            Result
+          </th>
+
+          <th style="color:#1f2835;font-size:.72rem;font-weight:600">
+            IP
+          </th>
+
+          <th style="color:#475569;font-size:.72rem;font-weight:600">
+            When
+          </th>
+        </tr>
+      </thead>
+
+      <tbody>
+
+        {% for s in recent_scans %}
+        <tr>
+
+          <td class="mono" style="font-size:.72rem;color:#94a3b8">
+
+            {{ s.product_unit_serial }}
+
+          </td>
+
+          <td style="font-size:.78rem;color:#64748b">
+
+            {{ s.product_name|default:"—" }}
+
+          </td>
+
+          <td>
+
+            <span class="badge
+            {% if s.result == 'GENUINE' %}
+              bg
+            {% elif s.result == 'SUSPICIOUS' %}
+              bs
+            {% else %}
+              bf
+            {% endif %}
+          ">
+              {{ s.result }}
+            </span>
+
+          </td>
+
+          <td class="mono" style="font-size:.68rem;color:#475569">
+
+            {{ s.scanned_from_ip|default:"—" }}
+
+          </td>
+
+          <td style="font-size:.75rem;color:#475569">
+
+            {{ s.scanned_at|timesince }} ago
+
+          </td>
+
+        </tr>
+
+        {% empty %}
+
+        <tr>
+          <td colspan="5" style="text-align:center;
+                   color:#334155;
+                   padding:2rem">
+
+            No scans yet.
+
+          </td>
+        </tr>
+
+        {% endfor %}
+
+      </tbody>
+
+    </table>
+
+  </div>
 </div>
 
+<div id="units-section" style="display:none">
+
+  <p class="section-title">Recent Units</p>
+
+  <div class="glass" style="border-radius:.875rem;overflow:hidden">
+
+    <table>
+
+      <thead>
+        <tr>
+          <th>Serial</th>
+          <th>Model</th>
+          <th>Status</th>
+          <th>Created</th>
+        </tr>
+      </thead>
+
+      <tbody>
+
+        {% for unit in units %}
+
+        <tr>
+
+          <td>{{ unit.serial_number }}</td>
+
+          <td>{{ unit.model.name }}</td>
+
+          <td>{{ unit.status }}</td>
+
+          <td>{{ unit.created_at|timesince }} ago</td>
+
+        </tr>
+
+        {% empty %}
+
+        <tr>
+          <td colspan="4">No units found.</td>
+        </tr>
+
+        {% endfor %}
+
+      </tbody>
+
+    </table>
+
+  </div>
+
+</div>
 <!-- ═══════════════════════════════════════════════ DISTRIBUTOR ═══ -->
 {% elif user.is_distributor %}
 <p class="section-title">Units in your possession</p>
@@ -153,7 +453,9 @@
         </td>
       </tr>
       {% empty %}
-      <tr><td colspan="4" style="text-align:center;color:#334155;padding:2rem">No units assigned to you.</td></tr>
+      <tr>
+        <td colspan="4" style="text-align:center;color:#334155;padding:2rem">No units assigned to you.</td>
+      </tr>
       {% endfor %}
     </tbody>
   </table>
@@ -181,7 +483,8 @@
       <tr>
         <td class="mono" style="font-size:.68rem;color:#475569">{{ s.product_hash_scanned|slice:":22" }}…</td>
         <td>
-          <span class="badge {% if s.result == 'GENUINE' %}bg{% elif s.result == 'SUSPICIOUS' %}bs{% else %}bf{% endif %}">
+          <span
+            class="badge {% if s.result == 'GENUINE' %}bg{% elif s.result == 'SUSPICIOUS' %}bs{% else %}bf{% endif %}">
             {{ s.result }}
           </span>
         </td>
@@ -189,7 +492,9 @@
         <td style="font-size:.75rem;color:#475569">{{ s.scanned_at|timesince }} ago</td>
       </tr>
       {% empty %}
-      <tr><td colspan="4" style="text-align:center;color:#334155;padding:2rem">No scans yet.</td></tr>
+      <tr>
+        <td colspan="4" style="text-align:center;color:#334155;padding:2rem">No scans yet.</td>
+      </tr>
       {% endfor %}
     </tbody>
   </table>
@@ -197,8 +502,43 @@
 {% endif %}
 
 <style>
-.hover-card:hover{border-color:rgba(59,130,246,.4)!important;transform:translateY(-2px)}
-.hover-card{transition:.2s}
+  .dashboard-tabs {
+    display: flex;
+    gap: 1rem;
+    margin: 2rem 0;
+  }
+
+  .tab-btn {
+    flex: 1;
+    padding: 1rem;
+    border: none;
+    border-radius: 16px;
+    background: #08142d;
+    color: #94a3b8;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: .95rem;
+    transition: .25s;
+  }
+
+  .tab-btn:hover {
+    background: #13213f;
+  }
+
+  .tab-btn.active {
+    background: #2563eb;
+    color: #fff;
+    box-shadow: 0 0 20px rgba(37, 99, 235, .35);
+  }
+
+  .hover-card:hover {
+    border-color: rgba(59, 130, 246, .4) !important;
+    transform: translateY(-2px)
+  }
+
+  .hover-card {
+    transition: .2s
+  }
 </style>
 
 {% endblock %}
@@ -206,25 +546,42 @@
 {% block extra_js %}
 {% if user.is_manufacturer %}
 <script>
-fetch('/api/scan-stats/')
-  .then(r=>r.json())
-  .then(d=>{
-    document.getElementById('stat24').textContent = d.scans_24h;
-    const total = d.genuine + d.suspicious + d.fake || 1;
-    const MAX_H = 48;
-    const bg = document.getElementById('bar-g');
-    const bs = document.getElementById('bar-s');
-    const bf = document.getElementById('bar-f');
-    bg.style.width = Math.max(30, (d.genuine/total)*180)+'px';
-    bg.style.height = Math.max(4,(d.genuine/total)*MAX_H)+'px';
-    bs.style.width = Math.max(30, (d.suspicious/total)*180)+'px';
-    bs.style.height = Math.max(4,(d.suspicious/total)*MAX_H)+'px';
-    bf.style.width = Math.max(30, (d.fake/total)*180)+'px';
-    bf.style.height = Math.max(4,(d.fake/total)*MAX_H)+'px';
-    document.getElementById('lbl-g').textContent = d.genuine;
-    document.getElementById('lbl-s').textContent = d.suspicious;
-    document.getElementById('lbl-f').textContent = d.fake;
-  }).catch(()=>{});
+
+  function showSection(section) {
+
+    const products = document.getElementById("products-section");
+    const units = document.getElementById("units-section");
+    const scans = document.getElementById("scans-section");
+
+    const productsBtn = document.getElementById("products-btn");
+    const unitsBtn = document.getElementById("units-btn");
+    const scansBtn = document.getElementById("scans-btn");
+
+    products.style.display = "none";
+    units.style.display = "none";
+    scans.style.display = "none";
+
+    productsBtn.classList.remove("active");
+    unitsBtn.classList.remove("active");
+    scansBtn.classList.remove("active");
+
+    if (section === "products") {
+      products.style.display = "block";
+      productsBtn.classList.add("active");
+    }
+
+    if (section === "units") {
+      units.style.display = "block";
+      unitsBtn.classList.add("active");
+    }
+
+    if (section === "scans") {
+      scans.style.display = "block";
+      scansBtn.classList.add("active");
+    }
+
+  }
+
 </script>
 {% endif %}
 {% endblock %}

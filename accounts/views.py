@@ -77,7 +77,7 @@ def role_home(request):
     role = getattr(request.user, 'role', None)
 
     if role == 'MANUFACTURER':
-        return redirect('manufacturer_home')
+        return redirect('products:dashboard')
 
     elif role == 'DISTRIBUTOR':
         return redirect('distributor_home')
@@ -91,11 +91,37 @@ def role_home(request):
         
 @login_required
 def manufacturer_home(request):
-    # REMOVED the role check redirect — it was causing the loop
     from products.models import ProductModel, ProductUnit
-    models_list = ProductModel.objects.filter(manufacturer=request.user)
-    units = ProductUnit.objects.filter(model__manufacturer=request.user).order_by('-created_at')[:20]
-    return render(request, 'accounts/manufacturer_home.html', {'models': models_list, 'units': units})
+    from blockchain.models import ScanLog
+
+    models_list = ProductModel.objects.filter(
+        manufacturer=request.user
+    )
+
+    units = ProductUnit.objects.filter(
+        model__manufacturer=request.user
+    ).order_by('-created_at')[:20]
+
+    serials = ProductUnit.objects.filter(
+        model__manufacturer=request.user
+    ).values_list(
+        'serial_number',
+        flat=True
+    )
+
+    recent_scans = ScanLog.objects.filter(
+        product_unit_serial__in=serials
+    ).order_by('-scanned_at')[:20]
+
+    return render(
+        request,
+        'accounts/manufacturer_home.html',
+        {
+            'models': models_list,
+            'units': units,
+            'recent_scans': recent_scans,
+        }
+    )
 
 @login_required
 def distributor_home(request):

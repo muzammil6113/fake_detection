@@ -15,19 +15,36 @@
               overflow:hidden">
 
     <!-- Background tint -->
-    <div style="position:absolute;
-                inset:0;
-                pointer-events:none;
+    <div
+    style="
+        position:absolute;
+        inset:0;
+        pointer-events:none;
 
-      {% if result.result == 'GENUINE' %}
-        background:radial-gradient(ellipse at center, rgba(16,185,129,.06) 0%, transparent 70%);
-      {% elif result.result == 'SUSPICIOUS' %}
-        background:radial-gradient(ellipse at center, rgba(245,158,11,.06) 0%, transparent 70%);
-      {% else %}
-        background:radial-gradient(ellipse at center, rgba(239,68,68,.06) 0%, transparent 70%);
-      {% endif %}
-    ">
-    </div>
+        {% if result.result == 'GENUINE' %}
+            background: radial-gradient(
+                ellipse at center,
+                rgba(16,185,129,.06) 0%,
+                transparent 70%
+            );
+
+        {% elif result.result == 'SUSPICIOUS' %}
+            background: radial-gradient(
+                ellipse at center,
+                rgba(245,158,11,.06) 0%,
+                transparent 70%
+            );
+
+        {% else %}
+            background: radial-gradient(
+                ellipse at center,
+                rgba(239,68,68,.06) 0%,
+                transparent 70%
+            );
+
+        {% endif %}
+    "
+></div>
 
     <!-- Result icon -->
     <div style="font-size:4.5rem;
@@ -44,30 +61,37 @@
     </div>
 
     <!-- Result badge -->
-    <div style="display:inline-block;
-                padding:.5rem 2rem;
-                border-radius:9999px;
-                font-size:1.5rem;
-                font-weight:800;
-                letter-spacing:.05em;
-                margin-bottom:.75rem;
+    <div
+    style="
+        display:inline-block;
+        padding:.5rem 2rem;
+        border-radius:9999px;
+        font-size:1.5rem;
+        font-weight:800;
+        letter-spacing:.05em;
+        margin-bottom:.75rem;
 
-      {% if result.result == 'GENUINE' %}
-        background:rgba(16,185,129,.15);
-        border:2px solid rgba(16,185,129,.4);
-        color:#34d399;
-      {% elif result.result == 'SUSPICIOUS' %}
-        background:rgba(245,158,11,.15);
-        border:2px solid rgba(245,158,11,.4);
-        color:#fbbf24;
-      {% else %}
-        background:rgba(239,68,68,.15);
-        border:2px solid rgba(239,68,68,.4);
-        color:#f87171;
-      {% endif %}
+        {% if result.result == 'GENUINE' %}
+            background:rgba(16,185,129,.15);
+            border:2px solid rgba(16,185,129,.4);
+            color:#34d399;
+
+        {% elif result.result == 'SUSPICIOUS' %}
+            background:rgba(245,158,11,.15);
+            border:2px solid rgba(245,158,11,.4);
+            color:#fbbf24;
+
+        {% else %}
+            background:rgba(239,68,68,.15);
+            border:2px solid rgba(239,68,68,.4);
+            color:#f87171;
+
+        {% endif %}
     ">
-      {{ result.result }}
-    </div>
+    
+    {{ result.result }}
+
+</div>
 
     <p style="color:#94a3b8;
               font-size:.9rem;
