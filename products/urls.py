@@ -14,4 +14,13 @@ urlpatterns = [
     path("verify/<str:product_hash>/",   views.verify_unit,          name="verify_unit"),
     path("chain/",                       views.chain_status,         name="chain_status"),
     path("api/scan-stats/",              views.api_scan_stats,       name="api_scan_stats"),
+
+
+
+    path("manufacturers/",                        views.manufacturer_list,     name="manufacturer_list"),
+    path("manufacturers/<int:mfr_id>/",           views.manufacturer_products, name="manufacturer_products"),
+    path("manufacturers/<int:mfr_id>/request/<int:product_id>/", views.request_product, name="request_product"),
+    path("inbox/",                                views.request_inbox,         name="request_inbox"),
+    path("inbox/<int:req_id>/accept/",            views.accept_request,        name="accept_request"),
+    path("inbox/<int:req_id>/deny/",              views.deny_request,          name="deny_request"),
 ]

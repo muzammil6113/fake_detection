@@ -1,6 +1,7 @@
 import time
 from datetime import timedelta
-
+from products.models import ProductModel, ProductUnit, TransferHistory, ProductRequest
+# from blockchain.utils import add_block   # adjust path to match your project
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
@@ -8,7 +9,7 @@ from django.http import JsonResponse
 from django.views.decorators.http import require_POST
 from django.utils import timezone
 
-from .models import ProductModel, ProductUnit, ScanLog, TransferHistory, Category
+from .models import ProductModel, ProductUnit, ScanLog, TransferHistory, Category, ProductRequest
 from .forms import ProductModelForm, GenerateUnitsForm, TransferForm
 from .qr_utils import generate_qr
 from .geo_utils import get_client_ip, get_location
@@ -73,6 +74,10 @@ def dashboard(request):
             status="FLAGGED"
         ).count()
 
+        ctx["pending_requests"] = ProductRequest.objects.filter(
+        manufacturer=user, status='pending'
+        ).count()
+
         serials = ProductUnit.objects.filter(
             model__manufacturer=user
         ).values_list(
@@ -84,6 +89,8 @@ def dashboard(request):
             product_unit_serial__in=serials
         ).order_by("-scanned_at")[:20]
 
+
+        
         return render(request, "dashboard.html", ctx)
 
     elif user.is_distributor():
@@ -198,6 +205,11 @@ def unit_detail(request, serial):
 @login_required
 @require_POST
 def transfer_unit(request, serial):
+
+    if request.user.role != 'manufacturer':
+        messages.error(request, "Only manufacturers can transfer products.")
+        return redirect("products:dashboard")
+
     unit = get_object_or_404(ProductUnit, serial_number=serial, current_owner=request.user)
     form = TransferForm(request.POST)
 
@@ -337,3 +349,140 @@ def api_scan_stats(request):
     })
 
 
+
+
+@login_required
+def accept_request(request, req_id):
+    req = get_object_or_404(ProductRequest, pk=req_id, manufacturer=request.user)
+
+    if req.status != 'pending':
+        messages.warning(request, "Request already handled.")
+        return redirect('products:request_inbox')
+
+    # Get available units owned by this manufacturer for the requested product
+    available_units = ProductUnit.objects.filter(
+    model=req.product,          # ← model, not product
+    current_owner=request.user
+)
+
+    if available_units.count() < req.quantity:
+        messages.error(
+            request,
+            f"Not enough units. You have {available_units.count()}, requested {req.quantity}."
+        )
+        return redirect('products:request_inbox')
+
+    # Bulk transfer — reuse exact same logic as transfer_unit
+    units_to_transfer = available_units[:req.quantity]
+
+    for unit in units_to_transfer:
+        old_owner = unit.current_owner
+        unit.current_owner = req.distributor
+        unit.status = "IN_TRANSIT"
+        unit.save()
+
+        block = add_block(
+            event_type="TRANSFERRED",
+            product_unit_serial=unit.serial_number,
+            actor_username=request.user.username,
+            actor_role=request.user.role,
+            extra_data={
+                "from": old_owner.username if old_owner else "",
+                "to": req.distributor.username,
+                "notes": f"Bulk transfer via request #{req.pk}",
+            },
+        )
+
+        TransferHistory.objects.create(
+            unit=unit,
+            from_user=old_owner,
+            to_user=req.distributor,
+            notes=f"Bulk transfer via request #{req.pk}",
+            block_hash=block.block_hash,
+        )
+
+    req.status = 'accepted'
+    req.save()
+
+    messages.success(
+        request,
+        f"Transferred {req.quantity}x {req.product.name} to {req.distributor.username}."
+    )
+    return redirect('products:request_inbox')
+
+
+
+
+# ── Distributor: browse manufacturers ────────────────────────────────────────
+
+@login_required
+def manufacturer_list(request):
+    if not request.user.is_distributor():
+        messages.error(request, "Only distributors can browse manufacturers.")
+        return redirect("products:dashboard")
+    manufacturers = User.objects.filter(role='manufacturer')
+    return render(request, "products/manufacturer_list.html", {
+        "manufacturers": manufacturers
+    })
+
+
+@login_required
+def manufacturer_products(request, mfr_id):
+    if not request.user.is_distributor():
+        messages.error(request, "Only distributors can browse manufacturer products.")
+        return redirect("products:dashboard")
+    manufacturer = get_object_or_404(User, pk=mfr_id)
+    products = ProductModel.objects.filter(manufacturer=manufacturer)
+    return render(request, "products/manufacturer_products.html", {
+        "manufacturer": manufacturer,
+        "products": products,
+    })
+
+
+@login_required
+@require_POST
+def request_product(request, mfr_id, product_id):
+    if not request.user.is_distributor():
+        messages.error(request, "Only distributors can request products.")
+        return redirect("products:dashboard")
+    product = get_object_or_404(ProductModel, pk=product_id, manufacturer__pk=mfr_id)
+    quantity = int(request.POST.get("quantity", 0))
+    note = request.POST.get("note", "")
+    if quantity < 1:
+        messages.error(request, "Quantity must be at least 1.")
+        return redirect("products:manufacturer_products", mfr_id=mfr_id)
+    ProductRequest.objects.create(
+        distributor=request.user,
+        manufacturer=product.manufacturer,
+        product=product,
+        quantity=quantity,
+        note=note,
+    )
+    messages.success(request, f"Request sent to {product.manufacturer.username}.")
+    return redirect("products:manufacturer_list")
+
+
+# ── Manufacturer: request inbox ───────────────────────────────────────────────
+
+@login_required
+def request_inbox(request):
+    if not request.user.is_manufacturer():
+        messages.error(request, "Only manufacturers can view the inbox.")
+        return redirect("products:dashboard")
+    requests_qs = ProductRequest.objects.filter(
+        manufacturer=request.user,
+        status='pending'
+    ).select_related('distributor', 'product').order_by('-created_at')
+    return render(request, "products/request_inbox.html", {
+        "requests": requests_qs
+    })
+
+
+@login_required
+@require_POST
+def deny_request(request, req_id):
+    req = get_object_or_404(ProductRequest, pk=req_id, manufacturer=request.user)
+    req.status = 'denied'
+    req.save()
+    messages.info(request, "Request denied.")
+    return redirect('products:request_inbox')

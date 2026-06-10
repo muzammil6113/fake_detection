@@ -1,5 +1,6 @@
 from django.db import models
 from django.conf import settings
+from django.contrib.auth import get_user_model
 
 
 class Category(models.Model):
@@ -84,3 +85,61 @@ class ScanLog(models.Model):
 
     class Meta: ordering = ["-scanned_at"]
     def __str__(self): return f"{self.product_hash_scanned[:12]}… → {self.result}"
+
+
+
+
+User = get_user_model()
+
+class ProductRequest(models.Model):
+    STATUS_CHOICES = [
+        ('pending', 'Pending'),
+        ('accepted', 'Accepted'),
+        ('denied', 'Denied'),
+    ]
+
+    distributor = models.ForeignKey(
+        User, on_delete=models.CASCADE,
+        related_name='sent_requests'
+    )
+    manufacturer = models.ForeignKey(
+        User, on_delete=models.CASCADE,
+        related_name='received_requests'
+    )
+    product = models.ForeignKey(
+        'ProductModel',          # ← fixed
+        on_delete=models.CASCADE,
+        related_name='requests'
+    )
+    quantity = models.PositiveIntegerField()
+    status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='pending')
+    note = models.TextField(blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f"{self.distributor} → {self.product} x{self.quantity} [{self.status}]"
+    STATUS_CHOICES = [
+        ('pending', 'Pending'),
+        ('accepted', 'Accepted'),
+        ('denied', 'Denied'),
+    ]
+
+    distributor = models.ForeignKey(
+        User, on_delete=models.CASCADE,
+        related_name='sent_requests'
+    )
+    manufacturer = models.ForeignKey(
+        User, on_delete=models.CASCADE,
+        related_name='received_requests'
+    )
+    product = models.ForeignKey('ProductModel', on_delete=models.CASCADE, related_name='requests')
+
+    quantity = models.PositiveIntegerField()
+    status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='pending')
+    note = models.TextField(blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f"{self.distributor} → {self.product} x{self.quantity} [{self.status}]"
