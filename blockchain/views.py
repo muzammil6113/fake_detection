@@ -1,6 +1,5 @@
 import json
 from django.http import JsonResponse
-from django.views.decorators.csrf import csrf_exempt
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import render
 from django.utils import timezone
@@ -17,12 +16,12 @@ def scan_page(request):
 def verify_hash(request):
     """
     API endpoint for QR verification. Returns JSON with verification result.
-    
+
     Checks:
     1. Hash exists in DB
     2. Supply chain valid (manufacturer linked)
     3. No duplicate/geo attack within time window
-    
+
     Result codes: GENUINE, SUSPICIOUS, FAKE
     """
     if request.method != 'POST':
@@ -38,20 +37,29 @@ def verify_hash(request):
     if not scanned_hash:
         return JsonResponse({'error': 'No hash received'}, status=400)
 
-    ip = request.META.get('HTTP_X_FORWARDED_FOR', request.META.get('REMOTE_ADDR'))
+    # ── Get client IP ─────────────────────────────────────────────────────────
+    ip = request.META.get('HTTP_X_FORWARDED_FOR', request.META.get('REMOTE_ADDR', ''))
+    if ip and ',' in ip:
+        ip = ip.split(',')[0].strip()
+
+    # ── Geo lookup (done ONCE, early, used everywhere below) ─────────────────
+    from products.geo_utils import get_location
+    geo     = get_location(ip)
+    geo_city    = geo.get('city', '')    or '—'
+    geo_country = geo.get('country', '') or '—'
 
     from products.models import ProductUnit
     from blockchain.models import ScanLog
 
-    # ────────────────────────────────────────────────────────────────
+    # ─────────────────────────────────────────────────────────────────────────
     # STEP 1: Fetch the product unit by hash
-    # ────────────────────────────────────────────────────────────────
+    # ─────────────────────────────────────────────────────────────────────────
     try:
         unit = ProductUnit.objects.select_related(
             'model', 'model__manufacturer'
         ).get(product_hash=scanned_hash)
+
     except ProductUnit.DoesNotExist:
-        # Hash not found - this is a FAKE product
         try:
             ScanLog.objects.create(
                 user=request.user,
@@ -59,40 +67,42 @@ def verify_hash(request):
                 product_name='Unknown',
                 result='INVALID',
                 scanned_from_ip=ip,
-                extra_data={'scanned_hash': scanned_hash}
+                extra_data={
+                    'scanned_hash': scanned_hash,
+                    'geo_city':    geo_city,
+                    'geo_country': geo_country,
+                }
             )
-        except Exception as log_err:
-            # Log creation failed, but still return the response
+        except Exception:
             pass
 
         return JsonResponse({
-            'result': 'FAKE',
+            'result':  'FAKE',
             'message': 'This product is NOT in our blockchain ledger.',
-            'color': 'red',
+            'color':   'red',
         }, status=200)
 
     except Exception as e:
-        # Database or other critical error
         return JsonResponse({
-            'result': 'ERROR',
+            'result':  'ERROR',
             'message': f'Server error: {str(e)}',
-            'color': 'red',
+            'color':   'red',
         }, status=500)
 
-    # ────────────────────────────────────────────────────────────────
+    # ─────────────────────────────────────────────────────────────────────────
     # STEP 2: Verify supply chain validity
-    # ────────────────────────────────────────────────────────────────
+    # ─────────────────────────────────────────────────────────────────────────
     if not unit.model or not unit.model.manufacturer_id:
-        result = 'SUSPICIOUS'
+        result  = 'SUSPICIOUS'
         message = 'No valid manufacturer linked to this product.'
-        color = 'amber'
+        color   = 'amber'
     else:
-        # ────────────────────────────────────────────────────────────
-        # STEP 3: Check for duplicate/cloning attacks
-        # ────────────────────────────────────────────────────────────
-        threshold = int(getattr(settings, 'SUSPICIOUS_SCAN_COUNT', 3))
+        # ─────────────────────────────────────────────────────────────────────
+        # STEP 3: Check for duplicate / cloning attacks
+        # ─────────────────────────────────────────────────────────────────────
+        threshold      = int(getattr(settings, 'SUSPICIOUS_SCAN_COUNT', 3))
         window_minutes = int(getattr(settings, 'SUSPICIOUS_SCAN_WINDOW_MINUTES', 60))
-        window = timezone.now() - timedelta(minutes=window_minutes)
+        window         = timezone.now() - timedelta(minutes=window_minutes)
 
         scan_count = ScanLog.objects.filter(
             product_unit_serial=unit.serial_number,
@@ -100,30 +110,30 @@ def verify_hash(request):
         ).count()
 
         if scan_count >= threshold:
-            result = 'SUSPICIOUS'
+            result  = 'SUSPICIOUS'
             message = (
                 f'⚠️ Cloning detected: Scanned {scan_count + 1}× '
                 f'in the last {window_minutes} min — exceeds threshold.'
             )
             color = 'amber'
         else:
-            # All checks passed!
-            result = 'GENUINE'
+            result       = 'GENUINE'
             manufacturer = unit.model.manufacturer
-            manufacturer_display = (
+            mfr_display  = (
                 manufacturer.company_name.strip() or manufacturer.username
             ) if manufacturer else 'Unknown'
-            message = f'✓ Genuine product. Manufactured by {manufacturer_display}.'
-            color = 'green'
+            message = f'✓ Genuine product. Manufactured by {mfr_display}.'
+            color   = 'green'
 
-    # ────────────────────────────────────────────────────────────────
-    # Log the scan result
-    # ────────────────────────────────────────────────────────────────
-    manufacturer_name = unit.model.manufacturer.username if unit.model and unit.model.manufacturer else 'Unknown'
-    if unit.model and unit.model.manufacturer and unit.model.manufacturer.company_name:
-        manufacturer_name = unit.model.manufacturer.company_name
+    # ── Manufacturer display name ─────────────────────────────────────────────
+    manufacturer_name = 'Unknown'
+    if unit.model and unit.model.manufacturer:
+        manufacturer_name = (
+            unit.model.manufacturer.company_name.strip()
+            or unit.model.manufacturer.username
+        )
 
-    # ── Log the scan ─────────────────────────────────────────────────────────
+    # ── Log the scan (with geo data stored) ──────────────────────────────────
     scan_log = None
     try:
         scan_log = ScanLog.objects.create(
@@ -135,19 +145,18 @@ def verify_hash(request):
             extra_data={
                 'scanned_hash': scanned_hash,
                 'manufacturer': manufacturer_name,
+                'geo_city':     geo_city,
+                'geo_country':  geo_country,
             }
         )
-    except Exception as log_err:
+    except Exception:
         pass
 
     # ── Alert manufacturer on suspicious scans ────────────────────────────────
     if result == 'SUSPICIOUS' and unit.model and unit.model.manufacturer:
         try:
             from products.alert_utils import alert_suspicious_scan
-            from products.models import ScanLog as ProductScanLog
 
-            # Build a lightweight scan object for the alert
-            # (uses products.ScanLog structure that alert_utils expects)
             class _ScanProxy:
                 def __init__(self, ip, city, country, r, ts):
                     self.scanner_ip  = ip
@@ -156,24 +165,23 @@ def verify_hash(request):
                     self.result      = r
                     self.scanned_at  = ts
 
-            
             proxy_scan = _ScanProxy(
                 ip=ip,
-                city='',
-                country='',
+                city=geo_city,        # ← real city from geo lookup
+                country=geo_country,  # ← real country from geo lookup
                 r=result,
                 ts=timezone.now(),
             )
             alert_suspicious_scan(unit, proxy_scan, unit.model.manufacturer)
-        except Exception as alert_err:
-            # Never block the response because of an alert failure
+
+        except Exception:
             pass
 
     return JsonResponse({
-        'result': result,
-        'message': message,
-        'color': color,
+        'result':       result,
+        'message':      message,
+        'color':        color,
         'product_name': unit.model.name if unit.model else 'Unknown',
-        'serial': unit.serial_number,
+        'serial':       unit.serial_number,
         'manufacturer': manufacturer_name,
     }, status=200)
