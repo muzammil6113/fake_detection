@@ -41,10 +41,15 @@ from django.contrib.auth import login
 from django.contrib.auth.decorators import login_required
 from .forms import ManufacturerRegisterForm, DistributorRegisterForm, CustomerRegisterForm
 
+
 def landing(request):
+    return render(request, 'accounts/landing.html')
+
+
+def home(request):
     if request.user.is_authenticated:
         return redirect('role_home')  # sends them to their dashboard
-    return render(request, 'accounts/landing.html')
+    return render(request, 'home.html')
 
 def register_manufacturer(request):
     form = ManufacturerRegisterForm(request.POST or None)

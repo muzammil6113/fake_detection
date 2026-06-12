@@ -1,0 +1,173 @@
+{% extends "base.html" %}
+{% block title %}{{ manufacturer.get_full_name|default:manufacturer.username }} — Products{% endblock %}
+
+{% block content %}
+
+<!-- Header -->
+<div style="display:flex;
+            align-items:flex-start;
+            justify-content:space-between;
+            flex-wrap:wrap;
+            gap:1rem;
+            margin-bottom:2rem">
+    <div>
+        <h1 style="font-size:1.75rem;font-weight:700;color:#f1f5f9">
+            {{ manufacturer.get_full_name|default:manufacturer.username }}
+        </h1>
+        <p style="color:#64748b;font-size:.85rem;margin-top:.25rem">
+            {% if manufacturer.company %}{{ manufacturer.company }} · {% endif %}
+            Select a product and request quantity
+        </p>
+    </div>
+    <a href="{% url 'products:manufacturer_list' %}" style="color:#60a5fa;font-size:.85rem;text-decoration:none">
+        ← Back to Manufacturers
+    </a>
+</div>
+
+{% if messages %}
+{% for msg in messages %}
+{% if msg.tags == 'error' %}
+<div style="padding:.75rem 1rem;
+            border-radius:.5rem;
+            margin-bottom:1rem;
+            font-size:.85rem;
+            background:rgba(239,68,68,.12);
+            color:#f87171;
+            border:1px solid rgba(239,68,68,.2);">
+    {% else %}
+    <div style="padding:.75rem 1rem;
+            border-radius:.5rem;
+            margin-bottom:1rem;
+            font-size:.85rem;
+            background:rgba(52,211,153,.12);
+            color:#34d399;
+            border:1px solid rgba(52,211,153,.2);">
+        {% endif %}
+        {{ msg }}
+    </div>
+    {% endfor %}
+    {% endif %}
+
+    <!-- Product Cards -->
+    <div style="display:grid;
+            grid-template-columns:repeat(auto-fill,minmax(320px,1fr));
+            gap:1.5rem">
+
+        {% for product in products %}
+        <div class="glass card" style="padding:1.25rem">
+
+            <!-- Product image -->
+            {% if product.image %}
+            <img src="{{ product.image.url }}" style="width:100%;
+                height:180px;
+                object-fit:cover;
+                border-radius:.75rem;
+                margin-bottom:1rem">
+            {% else %}
+            <div style="width:100%;
+                height:180px;
+                background:#0f172a;
+                border-radius:.75rem;
+                display:flex;
+                align-items:center;
+                justify-content:center;
+                font-size:3rem;
+                margin-bottom:1rem">
+                📦
+            </div>
+            {% endif %}
+
+            <!-- Product info -->
+            <p style="color:#3b82f6;
+              font-size:.72rem;
+              font-family:monospace;
+              margin-bottom:.3rem">
+                {{ product.model_code }}
+            </p>
+
+            <h3 style="font-size:1rem;
+               font-weight:600;
+               color:#f1f5f9;
+               margin-bottom:.2rem">
+                {{ product.name }}
+            </h3>
+
+            <p style="font-size:.8rem;
+              color:#64748b;
+              margin-bottom:.25rem">
+                {{ product.brand }}
+                {% if product.category %} · {{ product.category }}{% endif %}
+            </p>
+
+            <p style="font-size:.78rem;
+              color:#475569;
+              margin-bottom:1rem;
+              line-height:1.5">
+                {{ product.description|truncatewords:20 }}
+            </p>
+
+            <!-- Available units count -->
+            <div style="display:flex;
+                align-items:center;
+                gap:.5rem;
+                margin-bottom:1rem;
+                padding:.5rem .75rem;
+                background:rgba(59,130,246,.06);
+                border-radius:.5rem;
+                border:1px solid rgba(59,130,246,.1)">
+                <span style="font-size:.8rem;color:#64748b">Available units:</span>
+                <span style="font-size:.85rem;font-weight:600;color:#60a5fa">
+                    {{ product.available_count }}
+                </span>
+            </div>
+
+            <!-- Request form -->
+            <form method="POST" action="{% url 'products:request_product' manufacturer.pk product.pk %}">
+                {% csrf_token %}
+
+                <div style="display:flex;gap:.5rem;margin-bottom:.5rem">
+                    <input type="number"
+       name="quantity"
+       min="1"
+       max="{{ product.available_count }}" placeholder="Qty"
+                        required style="flex:1;
+                      background:#0f172a;
+                      border:1px solid rgba(59,130,246,.2);
+                      border-radius:.5rem;
+                      padding:.5rem .75rem;
+                      color:#f1f5f9;
+                      font-size:.85rem;
+                      outline:none">
+                    <button type="submit" class="btn btn-blue" style="white-space:nowrap;
+                       padding:.5rem 1rem;
+                       font-size:.85rem">
+                        Request →
+                    </button>
+                </div>
+
+                <input type="text" name="note" placeholder="Note (optional)" style="width:100%;
+                    box-sizing:border-box;
+                    background:#0f172a;
+                    border:1px solid rgba(59,130,246,.1);
+                    border-radius:.5rem;
+                    padding:.45rem .75rem;
+                    color:#94a3b8;
+                    font-size:.78rem;
+                    outline:none">
+            </form>
+
+        </div>
+        {% empty %}
+
+        <div class="glass card" style="grid-column:1/-1;
+              text-align:center;
+              padding:3rem">
+            <div style="font-size:3rem;margin-bottom:1rem">📦</div>
+            <p style="color:#64748b">This manufacturer has no products yet.</p>
+        </div>
+
+        {% endfor %}
+
+    </div>
+
+    {% endblock %}

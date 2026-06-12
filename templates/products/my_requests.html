@@ -1,0 +1,86 @@
+{% extends "base.html" %}
+{% block title %}My Requests — BlockVerify{% endblock %}
+
+{% block content %}
+
+<div style="display:flex;
+            align-items:flex-start;
+            justify-content:space-between;
+            flex-wrap:wrap;
+            gap:1rem;
+            margin-bottom:2rem">
+    <div>
+        <h1 style="font-size:1.75rem;font-weight:700;color:#f1f5f9">My Requests</h1>
+        <p style="color:#64748b;font-size:.85rem;margin-top:.25rem">
+            Track all your product requests
+        </p>
+    </div>
+    <a href="{% url 'products:dashboard' %}" style="color:#60a5fa;font-size:.85rem;text-decoration:none">
+        ← Back to Dashboard
+    </a>
+</div>
+
+<div class="glass" style="border-radius:.875rem;overflow:hidden">
+    <table>
+        <thead>
+            <tr style="border-bottom:1px solid rgba(59,130,246,.12)">
+                <th style="color:#475569;font-size:.72rem;font-weight:600">Product</th>
+                <th style="color:#475569;font-size:.72rem;font-weight:600">Manufacturer</th>
+                <th style="color:#475569;font-size:.72rem;font-weight:600">Qty</th>
+                <th style="color:#475569;font-size:.72rem;font-weight:600">Status</th>
+                <th style="color:#475569;font-size:.72rem;font-weight:600">Requested</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for req in requests %}
+            <tr>
+                <td style="font-size:.85rem;color:#cbd5e1">
+                    {{ req.product.name }}
+                    <span style="display:block;
+                       font-size:.7rem;
+                       font-family:monospace;
+                       color:#475569">
+                        {{ req.product.model_code }}
+                    </span>
+                </td>
+                <td style="font-size:.82rem;color:#94a3b8">
+                    {{ req.manufacturer.get_full_name|default:req.manufacturer.username }}
+                </td>
+                <td style="font-size:.9rem;
+                   font-weight:600;
+                   color:#60a5fa">
+                    {{ req.quantity }}
+                </td>
+                <td>
+                    {% if req.status == 'accepted' %}
+                    <span
+                        style="font-size:.75rem;font-weight:600;padding:.2rem .6rem;border-radius:999px;background:rgba(52,211,153,.12);color:#34d399;">
+                        {% elif req.status == 'denied' %}
+                        <span
+                            style="font-size:.75rem;font-weight:600;padding:.2rem .6rem;border-radius:999px;background:rgba(239,68,68,.1);color:#f87171;">
+                            {% else %}
+                            <span
+                                style="font-size:.75rem;font-weight:600;padding:.2rem .6rem;border-radius:999px;background:rgba(251,191,36,.1);color:#fbbf24;">
+                                {% endif %}
+                                {{ req.status|capfirst }}
+                            </span>
+                </td>
+                <td style="font-size:.75rem;color:#64748b">
+                    {{ req.created_at|timesince }} ago
+                </td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="5" style="text-align:center;color:#334155;padding:2rem">
+                    No requests yet.
+                    <a href="{% url 'products:manufacturer_list' %}" style="color:#60a5fa;margin-left:.5rem">
+                        Browse manufacturers →
+                    </a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+{% endblock %}

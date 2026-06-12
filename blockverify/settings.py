@@ -92,16 +92,24 @@ LOGIN_REDIRECT_URL = '/accounts/home/'
 LOGOUT_REDIRECT_URL = "/"
 
 # API keys
-SENDGRID_API_KEY             = os.getenv("SENDGRID_API_KEY", "")
-DEFAULT_FROM_EMAIL           = os.getenv("DEFAULT_FROM_EMAIL", "noreply@blockverify.com")
-TWILIO_ACCOUNT_SID           = os.getenv("TWILIO_ACCOUNT_SID", "")
-TWILIO_AUTH_TOKEN            = os.getenv("TWILIO_AUTH_TOKEN", "")
-TWILIO_PHONE_NUMBER          = os.getenv("TWILIO_PHONE_NUMBER", "")
-IPINFO_TOKEN                 = os.getenv("IPINFO_TOKEN", "")
-# SUSPICIOUS_SCAN_COUNT        = int(os.getenv("SUSPICIOUS_SCAN_COUNT", 5))
-# SUSPICIOUS_SCAN_WINDOW_MINUTES = int(os.getenv("SUSPICIOUS_SCAN_WINDOW_MINUTES", 60))
+# ── Gmail SMTP ────────────────────────────────────────────────────────────────
+EMAIL_BACKEND       = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST          = 'smtp.gmail.com'
+EMAIL_PORT          = 587
+EMAIL_USE_TLS       = True
+EMAIL_HOST_USER     = os.getenv('EMAIL_HOST_USER', '')
+EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD', '')
+DEFAULT_FROM_EMAIL  = os.getenv('DEFAULT_FROM_EMAIL', 'BlockVerify <noreply@blockverify.com>')
+
+# Keep Twilio SMS (optional, won't break if keys are empty)
+TWILIO_ACCOUNT_SID  = os.getenv('TWILIO_ACCOUNT_SID', '')
+TWILIO_AUTH_TOKEN   = os.getenv('TWILIO_AUTH_TOKEN', '')
+TWILIO_PHONE_NUMBER = os.getenv('TWILIO_PHONE_NUMBER', '')
+IPINFO_TOKEN        = os.getenv('IPINFO_TOKEN', '')
+
+# Suspicious scan thresholds
+SUSPICIOUS_SCAN_COUNT          = 3
+SUSPICIOUS_SCAN_WINDOW_MINUTES = 60
+
 
 AUTH_USER_MODEL = 'accounts.User'
-
-SUSPICIOUS_SCAN_COUNT          = 3    # scans within the window = suspicious
-SUSPICIOUS_SCAN_WINDOW_MINUTES = 60   # rolling window in minutes

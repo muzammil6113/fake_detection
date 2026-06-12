@@ -1,114 +1,450 @@
 {% extends "base.html" %}
-{% block title %}BlockVerify — Blockchain Anti-Counterfeit System{% endblock %}
+{% block title %}BlockVerify — Blockchain Anti-Counterfeit{% endblock %}
+
+{% block extra_head %}
+<style>
+  /* ── Full-screen canvas background ── */
+  #bv-canvas {
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
+  }
+
+  /* ── Page wrapper ── */
+  .bv-home {
+    position: relative;
+    z-index: 1;
+    min-height: calc(100vh - 3.5rem);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem 1rem;
+  }
+
+  /* ── Center column ── */
+  .bv-center {
+    width: 100%;
+    max-width: 22rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0;
+  }
+
+  /* ── Logo mark ── */
+  .bv-logo-mark {
+    display: flex;
+    align-items: center;
+    gap: .5rem;
+    margin-bottom: 1.75rem;
+    text-decoration: none;
+  }
+
+  .bv-logo-mark svg {
+    filter: drop-shadow(0 0 8px rgba(59,130,246,.5));
+  }
+
+  .bv-logo-name {
+    font-size: 1.15rem;
+    font-weight: 800;
+    letter-spacing: -.02em;
+    color: #f1f5f9;
+  }
+
+  .bv-logo-name span {
+    color: #3b82f6;
+  }
+
+  /* ── Tag line above card ── */
+  .bv-tagline {
+    font-size: .7rem;
+    font-weight: 600;
+    letter-spacing: .12em;
+    text-transform: uppercase;
+    color: #1e3a5f;
+    margin-bottom: 1.25rem;
+    text-align: center;
+  }
+
+  /* ── Card ── */
+  .bv-card {
+    width: 100%;
+    border-radius: 1rem;
+    padding: 2rem;
+    background: rgba(8, 14, 28, .88);
+    border: 1px solid rgba(59, 130, 246, .15);
+    backdrop-filter: blur(20px);
+    box-shadow:
+      0 0 0 1px rgba(59,130,246,.04),
+      0 8px 32px rgba(0,0,0,.45),
+      0 0 64px rgba(37,99,235,.06);
+  }
+
+  /* ── Headline inside card ── */
+  .bv-card-headline {
+    font-size: 1.6rem;
+    font-weight: 800;
+    letter-spacing: -.025em;
+    color: #f1f5f9;
+    text-align: center;
+    margin: 0 0 .35rem;
+    line-height: 1.15;
+  }
+
+  .bv-card-sub {
+    font-size: .8rem;
+    color: #475569;
+    text-align: center;
+    margin: 0 0 1.75rem;
+    line-height: 1.5;
+  }
+
+  /* ── Form field ── */
+  .bv-field {
+    margin-bottom: 1rem;
+  }
+
+  .bv-label {
+    display: block;
+    color: #64748b;
+    font-size: .72rem;
+    font-weight: 600;
+    letter-spacing: .06em;
+    text-transform: uppercase;
+    margin-bottom: .35rem;
+  }
+
+  /* ── Submit button — full width, with glow ── */
+  .bv-submit {
+    width: 100%;
+    padding: .7rem;
+    margin-top: .25rem;
+    background: #2563eb;
+    color: #fff;
+    font-size: .9rem;
+    font-weight: 700;
+    letter-spacing: .02em;
+    border: none;
+    border-radius: .6rem;
+    cursor: pointer;
+    transition: background .18s, box-shadow .18s, transform .12s;
+    box-shadow: 0 0 0 0 rgba(37,99,235,0);
+  }
+
+  .bv-submit:hover {
+    background: #1d4ed8;
+    box-shadow: 0 0 20px rgba(37,99,235,.35);
+    transform: translateY(-1px);
+  }
+
+  .bv-submit:active {
+    transform: translateY(0);
+  }
+
+  /* ── Register prompt ── */
+  .bv-register-prompt {
+    text-align: center;
+    font-size: .8rem;
+    color: #475569;
+    margin-top: 1.25rem;
+  }
+
+  .bv-register-prompt a {
+    color: #60a5fa;
+    font-weight: 600;
+    text-decoration: none;
+  }
+
+  .bv-register-prompt a:hover {
+    text-decoration: underline;
+  }
+
+  /* ── Demo hint ── */
+  .bv-demo {
+    margin-top: 1.25rem;
+    padding: .65rem .85rem;
+    background: rgba(13, 20, 40, .6);
+    border-radius: .5rem;
+    border: 1px solid rgba(59,130,246,.08);
+  }
+
+  .bv-demo-label {
+    font-size: .68rem;
+    font-weight: 700;
+    color: #334155;
+    letter-spacing: .04em;
+    margin-bottom: .2rem;
+  }
+
+  .bv-demo-accounts {
+    font-size: .72rem;
+    color: #475569;
+    font-family: 'Courier New', monospace;
+  }
+
+  /* ── Quote below card ── */
+  .bv-quote {
+    margin-top: 1.75rem;
+    text-align: center;
+    font-size: .72rem;
+    color: #1e3a5f;
+    font-style: italic;
+    line-height: 1.65;
+    max-width: 20rem;
+  }
+
+  .bv-quote cite {
+    display: block;
+    font-style: normal;
+    font-size: .65rem;
+    color: #0f1e38;
+    margin-top: .3rem;
+    letter-spacing: .05em;
+    text-transform: uppercase;
+  }
+
+  /* ── Subtle pulse on logo shield ── */
+  @keyframes bv-shield-pulse {
+    0%, 100% { filter: drop-shadow(0 0 6px rgba(59,130,246,.4)); }
+    50%       { filter: drop-shadow(0 0 14px rgba(59,130,246,.8)); }
+  }
+
+  .bv-logo-mark svg {
+    animation: bv-shield-pulse 3s ease-in-out infinite;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .bv-logo-mark svg { animation: none; }
+  }
+</style>
+{% endblock %}
+
 {% block content %}
 
-<!-- HERO -->
-<div style="text-align:center;padding:4rem 0 3rem">
-  <div style="display:inline-flex;align-items:center;gap:.5rem;padding:.35rem 1rem;
-              border-radius:9999px;font-size:.75rem;color:#60a5fa;
-              background:rgba(37,99,235,.1);border:1px solid rgba(59,130,246,.25);margin-bottom:1.5rem">
-    <span style="width:.4rem;height:.4rem;border-radius:50%;background:#60a5fa;animation:pulse 2s infinite"></span>
-    SHA-256 · Proof-of-Work · IPInfo Geolocation · SendGrid · Twilio SMS
-  </div>
+<!-- Animated canvas background -->
+<canvas id="bv-canvas"></canvas>
 
-  <h1 style="font-size:2.8rem;font-weight:800;line-height:1.15;margin-bottom:1rem">
-    Stop Counterfeit Products<br/>
-    <span style="color:#3b82f6">With Blockchain</span>
-  </h1>
+<div class="bv-home">
+  <div class="bv-center">
 
-  <p style="color:#94a3b8;font-size:1.1rem;max-width:38rem;margin:0 auto 2.5rem">
-    Every physical product gets a unique QR code backed by an immutable blockchain record.
-    Three-layer verification: hash check + supply chain + geo clone detection.
-  </p>
-
-  <div style="display:flex;gap:1rem;justify-content:center;flex-wrap:wrap">
-    <a href="/accounts/register/" class="btn btn-blue" style="font-size:1rem;padding:.7rem 1.75rem">
-      Get Started →
+    <!-- Logo mark -->
+    <a href="/" class="bv-logo-mark">
+      <svg width="28" height="28" fill="none" stroke="#3b82f6"
+           stroke-width="2" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round"
+          d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944
+             a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9
+             c0 5.591 3.824 10.29 9 11.622
+             5.176-1.332 9-6.03 9-11.622
+             0-1.042-.133-2.052-.382-3.016z"/>
+      </svg>
+      <span class="bv-logo-name">Block<span>Verify</span></span>
     </a>
-    <a href="#features" class="btn btn-ghost" style="font-size:1rem;padding:.7rem 1.75rem">
-      How it works ↓
-    </a>
-  </div>
-</div>
 
-<!-- QUICK VERIFY -->
-<div style="max-width:36rem;margin:0 auto 4rem">
-  <div class="glass card" style="padding:1.5rem">
-    <p style="color:#64748b;font-size:.8rem;text-align:center;margin-bottom:.75rem">
-      Quick Verify — paste product hash or scan QR
-    </p>
-    <div style="display:flex;gap:.5rem">
-      <input id="qv" type="text" maxlength="64" placeholder="Paste 64-character product hash…"
-             class="inp mono" style="flex:1"/>
-      <button onclick="doVerify()" class="btn btn-blue" style="white-space:nowrap">Verify</button>
-    </div>
-  </div>
-</div>
+    <p class="bv-tagline">Blockchain Anti-Counterfeit · 2026</p>
 
-<!-- FEATURES -->
-<h2 id="features" style="font-size:1.5rem;font-weight:700;text-align:center;margin-bottom:2rem">
-  What makes BlockVerify advanced
-</h2>
-<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:1rem;margin-bottom:4rem">
-  {% for icon, title, desc in features %}
-  <div class="glass card">
-    <div style="font-size:2rem;margin-bottom:.75rem">{{ icon }}</div>
-    <h3 style="font-weight:600;color:#f1f5f9;margin-bottom:.5rem">{{ title }}</h3>
-    <p style="color:#94a3b8;font-size:.85rem;line-height:1.6">{{ desc }}</p>
-  </div>
-  {% endfor %}
-</div>
+    <!-- Login card -->
+    <div class="bv-card">
+      <h1 class="bv-card-headline">Welcome back</h1>
+      <p class="bv-card-sub">Sign in to your verified account</p>
 
-<!-- HOW IT WORKS -->
-<div class="glass" style="border-radius:1rem;padding:2.5rem;margin-bottom:2rem">
-  <h2 style="font-size:1.25rem;font-weight:700;text-align:center;margin-bottom:2rem">
-    How It Works — 4 Steps
-  </h2>
-  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:2rem">
-    {% for step, label in steps %}
-    <div style="text-align:center">
-      <div style="width:2.5rem;height:2.5rem;border-radius:50%;background:#1d4ed8;
-                  display:flex;align-items:center;justify-content:center;
-                  font-weight:700;color:#fff;margin:0 auto .75rem;font-size:1rem">
-        {{ forloop.counter }}
+      <form method="post" action="{% url 'login' %}">
+        {% csrf_token %}
+        {% for field in form %}
+        <div class="bv-field">
+          <label class="bv-label">{{ field.label }}</label>
+          <input
+            type="{{ field.field.widget.input_type }}"
+            name="{{ field.html_name }}"
+            class="inp"
+            {% if forloop.first %}autofocus{% endif %}
+          />
+          {% for error in field.errors %}
+            <p style="color:#f87171;font-size:.7rem;margin-top:.25rem">{{ error }}</p>
+          {% endfor %}
+        </div>
+        {% endfor %}
+
+        {% if form.non_field_errors %}
+          <p style="color:#f87171;font-size:.78rem;margin-bottom:.75rem">
+            {{ form.non_field_errors.0 }}
+          </p>
+        {% endif %}
+
+        <button type="submit" class="bv-submit">Sign in →</button>
+      </form>
+
+      <p class="bv-register-prompt">
+        No account?
+        <a href="{% url 'landing' %}">Choose your role to register</a>
+      </p>
+
+      <!-- Demo accounts hint -->
+      <div class="bv-demo">
+        <p class="bv-demo-label">Demo accounts · password: demo1234</p>
+        <p class="bv-demo-accounts">nike_mfr · dist_john · customer_ali</p>
       </div>
-      <p style="font-weight:500;color:#e2e8f0;font-size:.9rem">{{ step }}</p>
-      <p style="color:#64748b;font-size:.78rem;margin-top:.35rem">{{ label }}</p>
     </div>
-    {% endfor %}
+
+    <!-- Quote -->
+    <p class="bv-quote">
+      "Counterfeits don't just cost money — they cost lives.
+       BlockVerify makes trust a proof, not a promise."
+      <cite>— BlockVerify, 2026</cite>
+    </p>
+
   </div>
 </div>
 
-<!-- ROLES -->
-<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:1rem">
-  <div class="glass card" style="border-left:3px solid #3b82f6">
-    <h3 style="font-weight:600;color:#60a5fa;margin-bottom:.5rem">🏭 Manufacturer</h3>
-    <p style="color:#94a3b8;font-size:.85rem">Register product models, generate units with QR + blockchain, track all scans and alerts.</p>
-  </div>
-  <div class="glass card" style="border-left:3px solid #8b5cf6">
-    <h3 style="font-weight:600;color:#a78bfa;margin-bottom:.5rem">🚚 Distributor</h3>
-    <p style="color:#94a3b8;font-size:.85rem">Receive transferred units, scan to verify, transfer onward to sellers. Every step on-chain.</p>
-  </div>
-  <div class="glass card" style="border-left:3px solid #10b981">
-    <h3 style="font-weight:600;color:#34d399;margin-bottom:.5rem">🛒 Customer</h3>
-    <p style="color:#94a3b8;font-size:.85rem">Scan QR to verify. Get instant GENUINE / SUSPICIOUS / FAKE verdict with full audit trail.</p>
-  </div>
-</div>
-
-<style>
-@keyframes pulse{0%,100%{opacity:1}50%{opacity:.5}}
-</style>
 {% endblock %}
 
 {% block extra_js %}
 <script>
-function doVerify(){
-  const h = document.getElementById('qv').value.trim();
-  if(h.length === 64) window.location = `/verify/${h}/`;
-  else alert('Please enter a valid 64-character SHA-256 hash.');
-}
-document.getElementById('qv').addEventListener('keydown', e => {
-  if(e.key === 'Enter') doVerify();
-});
+  /* ── Authenticated redirect ── */
+  {% if user.is_authenticated %}
+  window.location.replace("{% url 'role_home' %}");
+  {% endif %}
+
+  /* ── Blockchain mesh canvas ── */
+  (function () {
+    const canvas = document.getElementById('bv-canvas');
+    const ctx = canvas.getContext('2d');
+    const REDUCED = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    let W, H, nodes, raf;
+    const NODE_COUNT = 38;
+    const MAX_DIST   = 160;
+    const SPEED      = REDUCED ? 0 : .28;
+
+    function resize() {
+      W = canvas.width  = window.innerWidth;
+      H = canvas.height = window.innerHeight;
+    }
+
+    function makeNode() {
+      const angle = Math.random() * Math.PI * 2;
+      const spd   = (.15 + Math.random() * .25) * SPEED || 0;
+      return {
+        x:  Math.random() * W,
+        y:  Math.random() * H,
+        vx: Math.cos(angle) * spd,
+        vy: Math.sin(angle) * spd,
+        r:  1.5 + Math.random() * 1.5,
+        pulse: Math.random() * Math.PI * 2,
+        pulseSpeed: .012 + Math.random() * .01,
+        /* data packet travelling toward a random other node */
+        pkTarget: null,
+        pkProgress: 0,
+        pkActive: false,
+        pkTimer: Math.random() * 200,
+      };
+    }
+
+    function init() {
+      resize();
+      nodes = Array.from({ length: NODE_COUNT }, makeNode);
+    }
+
+    function drawFrame() {
+      ctx.clearRect(0, 0, W, H);
+
+      /* update node positions */
+      for (const n of nodes) {
+        if (!REDUCED) {
+          n.x += n.vx; n.y += n.vy;
+          if (n.x < -20) n.x = W + 20;
+          if (n.x > W + 20) n.x = -20;
+          if (n.y < -20) n.y = H + 20;
+          if (n.y > H + 20) n.y = -20;
+        }
+        n.pulse += n.pulseSpeed;
+      }
+
+      /* draw edges */
+      for (let i = 0; i < nodes.length; i++) {
+        for (let j = i + 1; j < nodes.length; j++) {
+          const a = nodes[i], b = nodes[j];
+          const dx = a.x - b.x, dy = a.y - b.y;
+          const dist = Math.sqrt(dx * dx + dy * dy);
+          if (dist < MAX_DIST) {
+            const alpha = (1 - dist / MAX_DIST) * .18;
+            ctx.beginPath();
+            ctx.moveTo(a.x, a.y);
+            ctx.lineTo(b.x, b.y);
+            ctx.strokeStyle = `rgba(37,99,235,${alpha})`;
+            ctx.lineWidth = .8;
+            ctx.stroke();
+          }
+        }
+      }
+
+      /* animate data packets */
+      for (let i = 0; i < nodes.length; i++) {
+        const n = nodes[i];
+        if (!REDUCED) {
+          if (!n.pkActive) {
+            n.pkTimer--;
+            if (n.pkTimer <= 0) {
+              /* find a nearby node to travel to */
+              let best = null, bestD = Infinity;
+              for (let j = 0; j < nodes.length; j++) {
+                if (j === i) continue;
+                const dx = nodes[j].x - n.x, dy = nodes[j].y - n.y;
+                const d = Math.sqrt(dx*dx+dy*dy);
+                if (d < MAX_DIST && d < bestD) { bestD = d; best = j; }
+              }
+              if (best !== null) {
+                n.pkTarget   = best;
+                n.pkProgress = 0;
+                n.pkActive   = true;
+              } else {
+                n.pkTimer = 80 + Math.random() * 120;
+              }
+            }
+          } else {
+            n.pkProgress += .014;
+            if (n.pkProgress >= 1) {
+              n.pkActive = false;
+              n.pkTimer  = 60 + Math.random() * 100;
+            } else {
+              const t  = nodes[n.pkTarget];
+              const px = n.x + (t.x - n.x) * n.pkProgress;
+              const py = n.y + (t.y - n.y) * n.pkProgress;
+              /* glow trail */
+              const grad = ctx.createRadialGradient(px, py, 0, px, py, 6);
+              grad.addColorStop(0, 'rgba(96,165,250,.7)');
+              grad.addColorStop(1, 'rgba(96,165,250,0)');
+              ctx.beginPath();
+              ctx.arc(px, py, 6, 0, Math.PI * 2);
+              ctx.fillStyle = grad;
+              ctx.fill();
+              /* packet dot */
+              ctx.beginPath();
+              ctx.arc(px, py, 2, 0, Math.PI * 2);
+              ctx.fillStyle = 'rgba(147,197,253,.9)';
+              ctx.fill();
+            }
+          }
+        }
+      }
+
+      /* draw nodes */
+      for (const n of nodes) {
+        const glow = .5 + .5 * Math.sin(n.pulse);
+        const alpha = .35 + .25 * glow;
+        ctx.beginPath();
+        ctx.arc(n.x, n.y, n.r + glow * .8, 0, Math.PI * 2);
+        ctx.fillStyle = `rgba(59,130,246,${alpha})`;
+        ctx.fill();
+      }
+
+      raf = requestAnimationFrame(drawFrame);
+    }
+
+    window.addEventListener('resize', () => { resize(); });
+    init();
+    drawFrame();
+  })();
 </script>
 {% endblock %}

@@ -73,72 +73,34 @@
             margin-bottom:2rem">
 
   <a href="{% url 'products:create_product_model' %}" class="glass card hover-card" style="text-decoration:none">
-
-    <div style="font-size:2rem;margin-bottom:.75rem">
-      ➕
-    </div>
-
-    <h3 style="font-size:1rem;
-                 font-weight:600;
-                 color:#f1f5f9">
-
-      Add Product Model
-
-    </h3>
-
-    <p style="font-size:.8rem;
-                color:#64748b">
-
-      Register a new product line
-
-    </p>
-
+    <div style="font-size:2rem;margin-bottom:.75rem">➕</div>
+    <h3 style="font-size:1rem;font-weight:600;color:#f1f5f9">Add Product Model</h3>
+    <p style="font-size:.8rem;color:#64748b">Register a new product line</p>
   </a>
 
-  <!-- <div onclick="showSection('products')" class="glass card hover-card" style="cursor:pointer">
-
-    <div style="font-size:2rem;margin-bottom:.75rem">
-      📦
-    </div>
-
-    <h3 style="font-size:1rem;
-                 font-weight:600;
-                 color:#f1f5f9">
-
-      Product Units
-
-    </h3>
-
-    <p style="font-size:.8rem;
-                color:#64748b">
-
-      Browse serialised units and QR codes
-
-    </p>
-
-  </div> -->
+  <a href="{% url 'products:request_inbox' %}" class="glass card hover-card" style="text-decoration:none;position:relative">
+    <div style="font-size:2rem;margin-bottom:.75rem">📥</div>
+    <h3 style="font-size:1rem;font-weight:600;color:#f1f5f9">Product Requests</h3>
+    <p style="font-size:.8rem;color:#64748b">Review and approve distributor requests</p>
+    {% if pending_requests %}
+    <span style="position:absolute;
+                 top:.75rem;right:.75rem;
+                 background:#ef4444;
+                 color:#fff;
+                 font-size:.7rem;
+                 font-weight:700;
+                 padding:.15rem .45rem;
+                 border-radius:999px;
+                 line-height:1.4">
+      {{ pending_requests }}
+    </span>
+    {% endif %}
+  </a>
 
   <a href="{% url 'products:chain_status' %}" class="glass card hover-card" style="text-decoration:none">
-
-    <div style="font-size:2rem;margin-bottom:.75rem">
-      ⛓️
-    </div>
-
-    <h3 style="font-size:1rem;
-                 font-weight:600;
-                 color:#f1f5f9">
-
-      Blockchain Status
-
-    </h3>
-
-    <p style="font-size:.8rem;
-                color:#64748b">
-
-      View blockchain integrity and recent blocks
-
-    </p>
-
+    <div style="font-size:2rem;margin-bottom:.75rem">⛓️</div>
+    <h3 style="font-size:1rem;font-weight:600;color:#f1f5f9">Blockchain Status</h3>
+    <p style="font-size:.8rem;color:#64748b">View blockchain integrity and recent blocks</p>
   </a>
 
 </div>
@@ -431,34 +393,16 @@
 </div>
 <!-- ═══════════════════════════════════════════════ DISTRIBUTOR ═══ -->
 {% elif user.is_distributor %}
-<p class="section-title">Units in your possession</p>
-<div class="glass" style="border-radius:.875rem;overflow:hidden">
-  <table>
-    <thead>
-      <tr style="border-bottom:1px solid rgba(59,130,246,.12)">
-        <th style="color:#475569;font-size:.72rem;font-weight:600">Serial</th>
-        <th style="color:#475569;font-size:.72rem;font-weight:600">Product</th>
-        <th style="color:#475569;font-size:.72rem;font-weight:600">Status</th>
-        <th style="color:#475569;font-size:.72rem;font-weight:600">Actions</th>
-      </tr>
-    </thead>
-    <tbody>
-      {% for unit in owned_units %}
-      <tr>
-        <td class="mono" style="font-size:.72rem;color:#94a3b8">{{ unit.serial_number }}</td>
-        <td style="font-size:.85rem;color:#cbd5e1">{{ unit.model.name }}</td>
-        <td><span class="badge bs">{{ unit.status }}</span></td>
-        <td>
-          <a href="/units/{{ unit.serial_number }}/" style="color:#60a5fa;font-size:.8rem">View / Transfer</a>
-        </td>
-      </tr>
-      {% empty %}
-      <tr>
-        <td colspan="4" style="text-align:center;color:#334155;padding:2rem">No units assigned to you.</td>
-      </tr>
-      {% endfor %}
-    </tbody>
-  </table>
+
+<div style="text-align:center;padding:3rem">
+  <div style="font-size:3rem;margin-bottom:1rem">🏭</div>
+  <p style="color:#64748b;margin-bottom:1rem">
+    You're logged in as a distributor.
+  </p>
+  <a href="{% url 'products:distributor_home' %}"
+     class="btn btn-blue">
+    Go to Distributor Dashboard →
+  </a>
 </div>
 
 <!-- ═══════════════════════════════════════════════ CUSTOMER ══════ -->

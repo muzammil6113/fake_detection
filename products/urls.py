@@ -23,4 +23,6 @@ urlpatterns = [
     path("inbox/",                                views.request_inbox,         name="request_inbox"),
     path("inbox/<int:req_id>/accept/",            views.accept_request,        name="accept_request"),
     path("inbox/<int:req_id>/deny/",              views.deny_request,          name="deny_request"),
+    path("my-requests/", views.my_requests, name="my_requests"),
+    path("distributor/", views.distributor_home, name="distributor_home"),
 ]

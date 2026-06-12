@@ -123,8 +123,10 @@ def verify_hash(request):
     if unit.model and unit.model.manufacturer and unit.model.manufacturer.company_name:
         manufacturer_name = unit.model.manufacturer.company_name
 
+    # ── Log the scan ─────────────────────────────────────────────────────────
+    scan_log = None
     try:
-        ScanLog.objects.create(
+        scan_log = ScanLog.objects.create(
             user=request.user,
             product_unit_serial=unit.serial_number,
             product_name=unit.model.name if unit.model else 'Unknown',
@@ -132,12 +134,40 @@ def verify_hash(request):
             scanned_from_ip=ip,
             extra_data={
                 'scanned_hash': scanned_hash,
-                'manufacturer': manufacturer_name
+                'manufacturer': manufacturer_name,
             }
         )
     except Exception as log_err:
-        # Log error but don't fail the response
         pass
+
+    # ── Alert manufacturer on suspicious scans ────────────────────────────────
+    if result == 'SUSPICIOUS' and unit.model and unit.model.manufacturer:
+        try:
+            from products.alert_utils import alert_suspicious_scan
+            from products.models import ScanLog as ProductScanLog
+
+            # Build a lightweight scan object for the alert
+            # (uses products.ScanLog structure that alert_utils expects)
+            class _ScanProxy:
+                def __init__(self, ip, city, country, r, ts):
+                    self.scanner_ip  = ip
+                    self.geo_city    = city
+                    self.geo_country = country
+                    self.result      = r
+                    self.scanned_at  = ts
+
+            
+            proxy_scan = _ScanProxy(
+                ip=ip,
+                city='',
+                country='',
+                r=result,
+                ts=timezone.now(),
+            )
+            alert_suspicious_scan(unit, proxy_scan, unit.model.manufacturer)
+        except Exception as alert_err:
+            # Never block the response because of an alert failure
+            pass
 
     return JsonResponse({
         'result': result,

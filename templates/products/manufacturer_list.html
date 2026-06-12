@@ -1,0 +1,109 @@
+{% extends "base.html" %}
+{% block title %}Manufacturers — BlockVerify{% endblock %}
+
+{% block content %}
+
+<!-- Header -->
+<div style="display:flex;
+            align-items:flex-start;
+            justify-content:space-between;
+            flex-wrap:wrap;
+            gap:1rem;
+            margin-bottom:2rem">
+  <div>
+    <h1 style="font-size:1.75rem;font-weight:700;color:#f1f5f9">
+      Manufacturers
+    </h1>
+    <p style="color:#64748b;font-size:.85rem;margin-top:.25rem">
+      Browse manufacturers and request products
+    </p>
+  </div>
+  <a href="{% url 'products:dashboard' %}"
+     style="color:#60a5fa;font-size:.85rem;text-decoration:none">
+    ← Back to Dashboard
+  </a>
+</div>
+
+<!-- Manufacturer Cards -->
+<div style="display:grid;
+            grid-template-columns:repeat(auto-fill,minmax(300px,1fr));
+            gap:1.5rem">
+
+  {% for mfr in manufacturers %}
+  <a href="{% url 'products:manufacturer_products' mfr.pk %}"
+     class="glass card hover-card"
+     style="text-decoration:none;padding:1.5rem">
+
+    <!-- Avatar -->
+    <div style="width:3rem;
+                height:3rem;
+                border-radius:50%;
+                background:linear-gradient(135deg,#1d4ed8,#7c3aed);
+                display:flex;
+                align-items:center;
+                justify-content:center;
+                font-size:1.25rem;
+                font-weight:700;
+                color:#fff;
+                margin-bottom:1rem">
+      {{ mfr.username|slice:":1"|upper }}
+    </div>
+
+    <h3 style="font-size:1rem;
+               font-weight:600;
+               color:#f1f5f9;
+               margin-bottom:.3rem">
+      {{ mfr.get_full_name|default:mfr.username }}
+    </h3>
+
+    {% if mfr.company %}
+    <p style="font-size:.8rem;color:#3b82f6;margin-bottom:.3rem">
+      {{ mfr.company }}
+    </p>
+    {% endif %}
+
+    <p style="font-size:.78rem;color:#64748b;margin-bottom:1rem">
+      {{ mfr.username }}
+    </p>
+
+    <div style="display:flex;
+                justify-content:space-between;
+                align-items:center;
+                padding-top:.75rem;
+                border-top:1px solid rgba(255,255,255,.06)">
+      <span style="font-size:.78rem;color:#64748b">
+        View products →
+      </span>
+      <span style="font-size:.75rem;
+                   color:#3b82f6;
+                   background:rgba(59,130,246,.1);
+                   padding:.2rem .6rem;
+                   border-radius:999px">
+        Manufacturer
+      </span>
+    </div>
+
+  </a>
+  {% empty %}
+
+  <div class="glass card"
+       style="grid-column:1/-1;
+              text-align:center;
+              padding:3rem">
+    <div style="font-size:3rem;margin-bottom:1rem">🏭</div>
+    <p style="color:#64748b">No manufacturers registered yet.</p>
+  </div>
+
+  {% endfor %}
+
+</div>
+
+<style>
+.hover-card:hover {
+  border-color: rgba(59,130,246,.4) !important;
+  transform: translateY(-2px);
+}
+.hover-card { transition: .2s; }
+</style>
+
+{% endblock %}

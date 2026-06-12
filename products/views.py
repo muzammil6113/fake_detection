@@ -63,7 +63,7 @@ def dashboard(request):
 
         ctx["units"] = ProductUnit.objects.filter(
             model__manufacturer=user
-        ).order_by("-created_at")[:20]
+        ).order_by("-updated_at")[:20]
 
         ctx["total_units"] = ProductUnit.objects.filter(
             model__manufacturer=user
@@ -420,7 +420,7 @@ def manufacturer_list(request):
     if not request.user.is_distributor():
         messages.error(request, "Only distributors can browse manufacturers.")
         return redirect("products:dashboard")
-    manufacturers = User.objects.filter(role='manufacturer')
+    manufacturers = User.objects.filter(role='MANUFACTURER')
     return render(request, "products/manufacturer_list.html", {
         "manufacturers": manufacturers
     })
@@ -431,8 +431,18 @@ def manufacturer_products(request, mfr_id):
     if not request.user.is_distributor():
         messages.error(request, "Only distributors can browse manufacturer products.")
         return redirect("products:dashboard")
-    manufacturer = get_object_or_404(User, pk=mfr_id)
+    manufacturer = get_object_or_404(User, pk=mfr_id, role='MANUFACTURER')
     products = ProductModel.objects.filter(manufacturer=manufacturer)
+
+    # Annotate each product with count of units still owned by manufacturer
+    from django.db.models import Count, Q
+    products = products.annotate(
+        available_count=Count(
+            'units',
+            filter=Q(units__current_owner=manufacturer)
+        )
+    )
+
     return render(request, "products/manufacturer_products.html", {
         "manufacturer": manufacturer,
         "products": products,
@@ -486,3 +496,29 @@ def deny_request(request, req_id):
     req.save()
     messages.info(request, "Request denied.")
     return redirect('products:request_inbox')
+
+
+
+@login_required
+def my_requests(request):
+    if not request.user.is_distributor():
+        return redirect("products:dashboard")
+    reqs = ProductRequest.objects.filter(
+        distributor=request.user
+    ).select_related('product', 'manufacturer').order_by('-created_at')
+    return render(request, "products/my_requests.html", {"requests": reqs})
+
+
+
+
+
+@login_required
+def distributor_home(request):
+    if not request.user.is_distributor():
+        return redirect("products:dashboard")
+    units = ProductUnit.objects.filter(
+        current_owner=request.user
+    ).order_by("-updated_at")
+    return render(request, "accounts/distributor_home.html", {
+        "units": units
+    })

@@ -43,92 +43,77 @@
             gap:1rem;
             margin-bottom:2rem">
 
-  <!-- Units -->
-  <a href="{% url 'products:dashboard' %}"
+  <!-- My Units -->
+  <!-- My Units — scroll to table instead of redirect -->
+<a href="#assigned-units"
+   class="glass card hover-card"
+   style="text-decoration:none">
+  <div style="font-size:2rem;margin-bottom:.75rem">📦</div>
+  <h3 style="font-size:1rem;font-weight:600;color:#f1f5f9;margin-bottom:.35rem">
+    My Units
+  </h3>
+  <p style="font-size:.8rem;color:#64748b">
+    View products currently assigned to you
+  </p>
+</a>
+
+  <!-- Browse Manufacturers (replaces Verify Product) -->
+  <a href="{% url 'products:manufacturer_list' %}"
      class="glass card hover-card"
      style="text-decoration:none">
-
-      <div style="font-size:2rem;margin-bottom:.75rem">
-        📦
-      </div>
-
-      <h3 style="font-size:1rem;
-                 font-weight:600;
-                 color:#f1f5f9;
-                 margin-bottom:.35rem">
-
-        My Units
-
+      <div style="font-size:2rem;margin-bottom:.75rem">🏭</div>
+      <h3 style="font-size:1rem;font-weight:600;color:#f1f5f9;margin-bottom:.35rem">
+        Browse Manufacturers
       </h3>
-
-      <p style="font-size:.8rem;
-                color:#64748b">
-
-        View products currently assigned to you
-
+      <p style="font-size:.8rem;color:#64748b">
+        View products &amp; request stock from manufacturers
       </p>
-
   </a>
 
   <!-- Blockchain -->
   <a href="{% url 'products:chain_status' %}"
      class="glass card hover-card"
      style="text-decoration:none">
-
-      <div style="font-size:2rem;margin-bottom:.75rem">
-        ⛓️
-      </div>
-
-      <h3 style="font-size:1rem;
-                 font-weight:600;
-                 color:#f1f5f9;
-                 margin-bottom:.35rem">
-
+      <div style="font-size:2rem;margin-bottom:.75rem">⛓️</div>
+      <h3 style="font-size:1rem;font-weight:600;color:#f1f5f9;margin-bottom:.35rem">
         Blockchain Status
-
       </h3>
-
-      <p style="font-size:.8rem;
-                color:#64748b">
-
+      <p style="font-size:.8rem;color:#64748b">
         Check blockchain integrity and transfers
-
       </p>
-
-  </a>
-
-  <!-- Verify -->
-  <a href="{% url 'products:home' %}"
-     class="glass card hover-card"
-     style="text-decoration:none">
-
-      <div style="font-size:2rem;margin-bottom:.75rem">
-        🔍
-      </div>
-
-      <h3 style="font-size:1rem;
-                 font-weight:600;
-                 color:#f1f5f9;
-                 margin-bottom:.35rem">
-
-        Verify Product
-
-      </h3>
-
-      <p style="font-size:.8rem;
-                color:#64748b">
-
-        Verify authenticity using QR or product hash
-
-      </p>
-
   </a>
 
 </div>
 
-<!-- Assigned Units -->
-<p class="section-title">Your Assigned Units</p>
+<!-- My Requests Row (new) -->
+<div style="margin-bottom:2rem">
+  <a href="{% url 'products:my_requests' %}"
+     class="glass card hover-card"
+     style="text-decoration:none;
+            display:flex;
+            align-items:center;
+            gap:1rem;
+            padding:1rem 1.25rem">
+    <div style="font-size:1.75rem">📋</div>
+    <div style="flex:1">
+      <h3 style="font-size:.95rem;font-weight:600;color:#f1f5f9;margin-bottom:.2rem">
+        My Requests
+      </h3>
+      <p style="font-size:.78rem;color:#64748b;margin:0">
+        Track pending, accepted and denied product requests
+      </p>
+    </div>
+    <div style="font-size:.8rem;color:#3b82f6;font-weight:600">
+      View →
+    </div>
+  </a>
+</div>
 
+
+
+<!-- Assigned Units -->
+<!-- Add id here ↓ -->
+<p class="section-title" id="assigned-units">Your Assigned Units</p>
 <div class="glass"
      style="border-radius:.875rem;
             overflow:hidden">
